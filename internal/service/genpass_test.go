@@ -11,9 +11,9 @@ func TestGenPass_GeneratePassword(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name           string
-		expectedLength int
-		expectedError  error
+		name           string // Tên test case
+		expectedLength int    // Input
+		expectedError  error  // Expected output
 	}{
 		{
 			name:           "normal case - length 12",
@@ -35,11 +35,11 @@ func TestGenPass_GeneratePassword(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			//van phai goi Parallel o day de chay song song testcases
-			t.Parallel()
-			testSvc := NewGenPass()
+			t.Parallel()            // Chạy song song
+			testSvc := NewGenPass() // Tạo service mới cho mỗi test
 			password, err := testSvc.GeneratePassword(tc.expectedLength)
-			assert.Equal(t, tc.expectedError, err)
-			assert.Equal(t, tc.expectedLength, len(password))
+			assert.Equal(t, tc.expectedError, err)            // Kiểm tra error
+			assert.Equal(t, tc.expectedLength, len(password)) // Kiểm tra kết quả
 		})
 	}
 

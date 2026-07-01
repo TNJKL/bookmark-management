@@ -8,17 +8,25 @@ import (
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 // service.GenPass // service.GenPassService
+
+//name = interface name
+//go:generate mockery --name GenPass --filename genpass.go
+
+// Interface: Service có thể làm gì
 type GenPass interface {
 	GeneratePassword(length int) (string, error)
 }
 
+// Struct: Implement thực tế
 type genPassService struct {
 }
 
+// Constructor
 func NewGenPass() GenPass {
 	return &genPassService{}
 }
 
+// Business logic thuần
 func (s *genPassService) GeneratePassword(length int) (string, error) {
 	password := make([]byte, length)
 
