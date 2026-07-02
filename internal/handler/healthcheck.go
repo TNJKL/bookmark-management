@@ -1,0 +1,42 @@
+package handler
+
+import (
+	"net/http"
+
+	"github.com/TNJKL/bookmark-management/internal/service"
+	"github.com/gin-gonic/gin"
+)
+
+type HealthCheck interface {
+	HealthCheck(ctx *gin.Context)
+}
+
+type healthCheckHandler struct {
+	healthCheckService service.HealthChecker
+}
+
+func NewHealthCheck(heathCheckSvc service.HealthChecker) HealthCheck {
+	return &healthCheckHandler{
+		healthCheckService: heathCheckSvc,
+	}
+}
+
+// Các phần liên quan tới Swagger  và MakeFile em nhờ AI gen thử còn  code bài tập là em dựa vào bài học rồi tự viết lại ạ
+// HealthCheck godoc
+// @Summary      Kiểm tra trạng thái hệ thống
+// @Description  Trả về trạng thái hoạt động hiện tại, tên dịch vụ và instance ID
+// @Tags         System
+// @Produce      json
+// @Success      200  {object}  model.HealthCheckResponse
+// @Failure      500  {object}  map[string]string "Lỗi hệ thống nội bộ"
+// @Router       /health-check [get]
+func (h *healthCheckHandler) HealthCheck(ctx *gin.Context) {
+	// Gọi xuống tầng Service để xử lý logic
+	result, err := h.healthCheckService.HealthCheck()
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+	// Trả kết quả về client
+	ctx.JSON(http.StatusOK, result)
+}

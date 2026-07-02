@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
+	_ "github.com/TNJKL/bookmark-management/docs" // Load tài liệu Swagger đã generate
 	"github.com/TNJKL/bookmark-management/internal/handler"
 	"github.com/TNJKL/bookmark-management/internal/service"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Interface định nghĩa "Engine có thể làm gì"
@@ -52,5 +55,19 @@ func (e *engine) initRoutes() {
 
 	// Bước 3: Gắn Handler vào route
 	e.app.GET("/genpass", genPassHandler.GeneratePassword)
+
+	//khai bao Health check handler
+
+	// Bước 1: Tạo Service
+	healthCheckSvc := service.NewHealthCheck(e.cfg.ServiceName, e.cfg.InstanceID)
+
+	// Bước 2: Tạo Handler, TRUYỀN service vào (DI)
+	healthCheckHandler := handler.NewHealthCheck(healthCheckSvc)
+
+	// Bước 3: Gắn Handler vào route
+	e.app.GET("/health-check", healthCheckHandler.HealthCheck)
+
+	//phần này em nhờ AI Gen
+	e.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 }
