@@ -7,14 +7,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// HealthCheck defines the handler contract for the health check endpoint.
 type HealthCheck interface {
 	HealthCheck(ctx *gin.Context)
 }
 
+// healthCheckHandler implements the HealthCheck interface.
 type healthCheckHandler struct {
 	healthCheckService service.HealthChecker
 }
 
+// healthcheck constructor
 func NewHealthCheck(heathCheckSvc service.HealthChecker) HealthCheck {
 	return &healthCheckHandler{
 		healthCheckService: heathCheckSvc,
@@ -25,7 +28,7 @@ func NewHealthCheck(heathCheckSvc service.HealthChecker) HealthCheck {
 // HealthCheck godoc
 // @Summary      Kiểm tra trạng thái hệ thống
 // @Description  Trả về trạng thái hoạt động hiện tại, tên dịch vụ và instance ID
-// @Tags         System
+// @Tags         health-check
 // @Produce      json
 // @Success      200  {object}  model.HealthCheckResponse
 // @Failure      500  {object}  map[string]string "Lỗi hệ thống nội bộ"

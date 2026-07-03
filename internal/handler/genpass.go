@@ -26,6 +26,12 @@ func NewGenPass(genPassSvc service.GenPass) GenPass {
 	}
 }
 
+// GeneratePassword godoc
+// @Summary      Generate a random password
+// @Tags         password
+// @Produce      json
+// @Success      200  {object}  model.HealthCheckResponse
+// @Router       /genpass [get]
 func (s *genPassHandler) GeneratePassword(c *gin.Context) {
 	// Gọi xuống tầng Service để xử lý logic
 	pass, err := s.genPassService.GeneratePassword(passwordLength)

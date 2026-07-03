@@ -9,13 +9,24 @@ definitions:
       service_name:
         type: string
     type: object
-host: localhost:8080
 info:
   contact: {}
-  description: Đây là tài liệu API cho hệ thống quản lý Bookmark.
+  description: API Swagger for Bookmark-Management.
   title: Bookmark Management API
-  version: "1.0"
+  version: 1.0.0
 paths:
+  /genpass:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.HealthCheckResponse'
+      summary: Generate a random password
+      tags:
+      - password
   /health-check:
     get:
       description: Trả về trạng thái hoạt động hiện tại, tên dịch vụ và instance ID
