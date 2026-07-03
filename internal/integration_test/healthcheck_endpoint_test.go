@@ -30,7 +30,7 @@ func TestHealthCheckEndpoint(t *testing.T) {
 				return responseRecorder
 			},
 			expectedStatusCode:   http.StatusOK,
-			expectedResponseBody: `"message":"OK"`,
+			expectedResponseBody: `{"message":"OK","service_name":"service_name_test","instance_id":"instance_test_id"}`,
 		},
 		{
 			name: "wrong endpoint method",

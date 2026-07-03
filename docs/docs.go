@@ -15,6 +15,25 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/genpass": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "password"
+                ],
+                "summary": "Generate a random password",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.HealthCheckResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/health-check": {
             "get": {
                 "description": "Trả về trạng thái hoạt động hiện tại, tên dịch vụ và instance ID",
@@ -65,12 +84,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "localhost:8080",
+	Version:          "1.0.0",
+	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Bookmark Management API",
-	Description:      "Đây là tài liệu API cho hệ thống quản lý Bookmark.",
+	Description:      "API Swagger for Bookmark-Management.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

@@ -6,7 +6,7 @@ import "github.com/TNJKL/bookmark-management/internal/model"
 
 //go:generate mockery --name HealthChecker --filename healthcheck.go
 type HealthChecker interface {
-	HealthCheck() (model.HealthCheckResponse, error)
+	HealthCheck() (*model.HealthCheckResponse, error)
 }
 
 // healthcheck struct
@@ -25,8 +25,8 @@ func NewHealthCheck(serviceName string, instanceID string) HealthChecker {
 
 // đây là method của struct healthCheckService , cách nhận biết method của 1 struct là nhìn vào receiver của method đó đúng không anh ?
 // ví dụ method này có receiver là (h *healthCheckService) nên nó là method của "healthCheckService struct"
-func (h *healthCheckService) HealthCheck() (model.HealthCheckResponse, error) {
-	return model.HealthCheckResponse{
+func (h *healthCheckService) HealthCheck() (*model.HealthCheckResponse, error) {
+	return &model.HealthCheckResponse{
 		Message:     "OK",
 		ServiceName: h.serviceName,
 		InstanceID:  h.instanceID,

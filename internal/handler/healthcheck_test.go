@@ -29,8 +29,10 @@ func TestHealthCheck_HealthCheck(t *testing.T) {
 			setupMockSvc: func() *mocks.HealthChecker {
 				mockSvc := mocks.NewHealthChecker(t)
 				mockSvc.On("HealthCheck").
-					Return(model.HealthCheckResponse{
-						"OK", "bookmark_service", "67026e45-34fd-449c-aa29-d18c7686ab00",
+					Return(&model.HealthCheckResponse{
+						Message:     "OK",
+						ServiceName: "bookmark_service",
+						InstanceID:  "67026e45-34fd-449c-aa29-d18c7686ab00",
 					}, nil)
 				return mockSvc
 			},
@@ -45,9 +47,7 @@ func TestHealthCheck_HealthCheck(t *testing.T) {
 			setupMockSvc: func() *mocks.HealthChecker {
 				mockSvc := mocks.NewHealthChecker(t)
 				mockSvc.On("HealthCheck").
-					Return(model.HealthCheckResponse{
-						"", "", "",
-					}, testError)
+					Return(nil, testError)
 				return mockSvc
 			},
 			setupTestRequest: func(ctx *gin.Context) {

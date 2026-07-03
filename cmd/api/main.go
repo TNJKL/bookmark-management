@@ -2,11 +2,10 @@ package main
 
 import "github.com/TNJKL/bookmark-management/internal/api"
 
-// @title           Bookmark Management API
-// @version         1.0
-// @description     API Swagger của Bookmark-Management.
-// @host            localhost:8080
-// @BasePath        /
+// @title       Bookmark Management API
+// @version     1.0.0
+// @description API Swagger for Bookmark-Management.
+// @BasePath    /
 func main() {
 	//create app config
 	cfg, err := api.NewConfig()
