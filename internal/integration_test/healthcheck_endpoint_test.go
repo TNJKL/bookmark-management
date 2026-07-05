@@ -51,7 +51,7 @@ func TestHealthCheckEndpoint(t *testing.T) {
 			//gọi Parallel để chạy song song các test case
 			t.Parallel()
 
-			testAPI := api.NewEngine(&api.Config{ServiceName: "service_name_test", InstanceID: "instance_test_id"})
+			testAPI := api.NewEngine(&api.Config{ServiceName: "service_name_test", InstanceID: "instance_test_id"}, nil)
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
