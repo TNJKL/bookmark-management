@@ -41,7 +41,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "System"
+                    "health-check"
                 ],
                 "summary": "Kiểm tra trạng thái hệ thống",
                 "responses": {
@@ -62,9 +62,56 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/links/shorten": {
+            "post": {
+                "description": "Generate shorten url based on original url that last upto 7 days",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "link"
+                ],
+                "parameters": [
+                    {
+                        "description": "Input required",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.shortenInputBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "handler.shortenInputBody": {
+            "type": "object",
+            "properties": {
+                "exp": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "model.HealthCheckResponse": {
             "type": "object",
             "properties": {

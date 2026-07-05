@@ -1,5 +1,12 @@
 basePath: /
 definitions:
+  handler.shortenInputBody:
+    properties:
+      exp:
+        type: integer
+      url:
+        type: string
+    type: object
   model.HealthCheckResponse:
     properties:
       instance_id:
@@ -45,5 +52,28 @@ paths:
             type: object
       summary: Kiểm tra trạng thái hệ thống
       tags:
-      - System
+      - health-check
+  /v1/links/shorten:
+    post:
+      consumes:
+      - application/json
+      description: Generate shorten url based on original url that last upto 7 days
+      parameters:
+      - description: Input required
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.shortenInputBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      tags:
+      - link
 swagger: "2.0"

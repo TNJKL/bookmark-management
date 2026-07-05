@@ -6,8 +6,10 @@ import (
 
 	_ "github.com/TNJKL/bookmark-management/docs" // Load tài liệu Swagger đã generate
 	"github.com/TNJKL/bookmark-management/internal/handler"
+	"github.com/TNJKL/bookmark-management/internal/repository"
 	"github.com/TNJKL/bookmark-management/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -20,15 +22,17 @@ type Engine interface {
 
 // Struct thực tế implement interface
 type engine struct {
-	app *gin.Engine
-	cfg *Config
+	app         *gin.Engine
+	cfg         *Config
+	redisClient *redis.Client
 }
 
-func NewEngine(cfg *Config) Engine {
+func NewEngine(cfg *Config, redis *redis.Client) Engine {
 
 	app := &engine{
-		app: gin.Default(), // Tạo Gin router
-		cfg: cfg,
+		app:         gin.Default(), // Tạo Gin router
+		cfg:         cfg,
+		redisClient: redis,
 	}
 	app.initRoutes() // Đăng ký các routes
 
@@ -53,9 +57,6 @@ func (e *engine) initRoutes() {
 	// Bước 2: Tạo Handler, TRUYỀN service vào (DI)
 	genPassHandler := handler.NewGenPass(genPassSvc)
 
-	// Bước 3: Gắn Handler vào route
-	e.app.GET("/genpass", genPassHandler.GeneratePassword)
-
 	//khai bao Health check handler
 
 	// Bước 1: Tạo Service
@@ -64,10 +65,20 @@ func (e *engine) initRoutes() {
 	// Bước 2: Tạo Handler, TRUYỀN service vào (DI)
 	healthCheckHandler := handler.NewHealthCheck(healthCheckSvc)
 
-	// Bước 3: Gắn Handler vào route
-	e.app.GET("/health-check", healthCheckHandler.HealthCheck)
+	//khai bao Shorten URL handler
 
-	//phần này em nhờ AI Gen
+	//tạo repository
+	urlStorage := repository.NewURLStorage(e.redisClient)
+
+	// Bước 1: Tạo Service
+	shortenUrlSvc := service.NewShortenUrl(urlStorage, genPassSvc)
+
+	// Bước 2: Tạo Handler, TRUYỀN service vào (DI)
+	urlStorageHandler := handler.NewShortenURL(shortenUrlSvc)
+
+	e.app.GET("/genpass", genPassHandler.GeneratePassword)
+	e.app.GET("/health-check", healthCheckHandler.HealthCheck)
 	e.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	e.app.POST("/v1/links/shorten", urlStorageHandler.ShortenLink)
 
 }
