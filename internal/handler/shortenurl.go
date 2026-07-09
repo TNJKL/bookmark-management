@@ -8,25 +8,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Shorten URl represents the Handler for shorten url related operations
+// ShortenURL represents the handler interface for shorten URL related operations,
 // including creating and redirecting shortened links.
 type ShortenURL interface {
 	ShortenLink(ctx *gin.Context)
 	Redirect(ctx *gin.Context)
 }
 
-// shortenURL is the default implementation of the ShortenURL interface
+// shortenURL is the default implementation of the ShortenURL interface.
 type shortenURL struct {
 	service service.ShortenURL
 }
 
-// shortenInputBody is the expected JSON request body for creating a shortened URL
+// shortenInputBody is the expected JSON request body for creating a shortened URL.
 type shortenInputBody struct {
 	Url string `json:"url"`
 	Exp int64  `json:"exp"`
 }
 
-// NewShortenURL creates a new ShortenURL handler backed by the given service
+// NewShortenURL creates a new ShortenURL handler backed by the given service.
 func NewShortenURL(svc service.ShortenURL) ShortenURL {
 	return &shortenURL{
 		service: svc,
@@ -60,7 +60,7 @@ func (s *shortenURL) ShortenLink(ctx *gin.Context) {
 		return
 	}
 	//return respone
-	ctx.JSON(http.StatusOK, gin.H{"code": code})
+	ctx.JSON(http.StatusOK, gin.H{"code": code, "message": "Shorten URL generated successfully!"})
 }
 
 func (s *shortenURL) Redirect(ctx *gin.Context) {}

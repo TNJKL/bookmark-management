@@ -18,6 +18,7 @@ type healthCheckHandler struct {
 }
 
 // healthcheck constructor
+// NewHealthCheck creates a new HealthCheck handler instance.
 func NewHealthCheck(heathCheckSvc service.HealthChecker) HealthCheck {
 	return &healthCheckHandler{
 		healthCheckService: heathCheckSvc,
@@ -26,7 +27,7 @@ func NewHealthCheck(heathCheckSvc service.HealthChecker) HealthCheck {
 
 // Các phần liên quan tới Swagger  và MakeFile em nhờ AI gen thử còn  code bài tập là em dựa vào bài học rồi tự viết lại ạ
 // HealthCheck godoc
-// @Summary      Kiểm tra trạng thái hệ thống
+// @Summary      System health-check
 // @Description  Trả về trạng thái hoạt động hiện tại, tên dịch vụ và instance ID
 // @Tags         health-check
 // @Produce      json
@@ -35,7 +36,7 @@ func NewHealthCheck(heathCheckSvc service.HealthChecker) HealthCheck {
 // @Router       /health-check [get]
 func (h *healthCheckHandler) HealthCheck(ctx *gin.Context) {
 	// Gọi xuống tầng Service để xử lý logic
-	result, err := h.healthCheckService.HealthCheck()
+	result, err := h.healthCheckService.HealthCheck(ctx)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return

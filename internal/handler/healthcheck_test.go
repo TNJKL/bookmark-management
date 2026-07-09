@@ -10,6 +10,7 @@ import (
 	"github.com/TNJKL/bookmark-management/internal/service/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var testError = errors.New("test error")
@@ -28,7 +29,7 @@ func TestHealthCheck_HealthCheck(t *testing.T) {
 			name: "happy path",
 			setupMockSvc: func() *mocks.HealthChecker {
 				mockSvc := mocks.NewHealthChecker(t)
-				mockSvc.On("HealthCheck").
+				mockSvc.On("HealthCheck", mock.Anything).
 					Return(&model.HealthCheckResponse{
 						Message:     "OK",
 						ServiceName: "bookmark_service",
@@ -46,7 +47,7 @@ func TestHealthCheck_HealthCheck(t *testing.T) {
 			name: "error case",
 			setupMockSvc: func() *mocks.HealthChecker {
 				mockSvc := mocks.NewHealthChecker(t)
-				mockSvc.On("HealthCheck").
+				mockSvc.On("HealthCheck", mock.Anything).
 					Return(nil, testError)
 				return mockSvc
 			},

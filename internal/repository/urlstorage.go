@@ -8,6 +8,8 @@ import (
 )
 
 // URLStorage defines storage operations for shortened URLs.
+//
+//go:generate mockery --name URLStorage --filename urlstorage.go
 type URLStorage interface {
 	StoreURL(ctx context.Context, code, url string, exp time.Duration) error
 	GetURL(ctx context.Context, code string) (string, error)

@@ -35,8 +35,19 @@ func TestUrlStorage_StoreURL(t *testing.T) {
 			expectedErr: nil,
 			verifyFunc: func(ctx context.Context, r *redis.Client) {
 				res, err := r.Get(ctx, "test").Result()
+				// Đọc lại key "test" từ Redis giả
+				// Tương đương lệnh Redis: GET "test"
+				// res = giá trị lấy được (string)
+				// err = lỗi nếu có (ví dụ key không tồn tại)
 				assert.NoError(t, err)
+
+				//Xác nhận: giá trị đọc ra phải là "https://google.com"
+				//(đúng với URL mà StoreURL đã lưu)
 				assert.Equal(t, "https://google.com", res)
+
+				//Nói cách khác: sau khi  StoreURL  chạy xong,
+				//verifyFunc  đóng vai "thanh tra" —
+				//mở kho Redis ra kiểm tra hàng có đúng không.
 			},
 		},
 
