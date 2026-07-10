@@ -15,6 +15,7 @@ import (
 )
 
 // Interface định nghĩa "Engine có thể làm gì"
+// Engine defines the contract for starting the server and handling HTTP requests.
 type Engine interface {
 	Start() error
 	ServerHTTP(w http.ResponseWriter, req *http.Request)
@@ -27,6 +28,7 @@ type engine struct {
 	redisClient *redis.Client
 }
 
+// NewEngine creates and configures a new HTTP API Engine.
 func NewEngine(cfg *Config, redis *redis.Client) Engine {
 
 	app := &engine{
@@ -39,11 +41,13 @@ func NewEngine(cfg *Config, redis *redis.Client) Engine {
 	return app
 }
 
+// Start runs the HTTP server on the configured port.
 func (e *engine) Start() error {
 	return e.app.Run(fmt.Sprintf(":%s", e.cfg.Apport))
 }
 
 // Server HTTP to test the API endpoint
+// ServerHTTP handles HTTP requests directly, primarily used for testing endpoints.
 func (e *engine) ServerHTTP(w http.ResponseWriter, req *http.Request) {
 	e.app.ServeHTTP(w, req)
 }
@@ -60,7 +64,8 @@ func (e *engine) initRoutes() {
 	//khai bao Health check handler
 
 	// Bước 1: Tạo Service
-	healthCheckSvc := service.NewHealthCheck(e.cfg.ServiceName, e.cfg.InstanceID)
+	healthRepo := repository.NewHealthRepository(e.redisClient)
+	healthCheckSvc := service.NewHealthCheck(e.cfg.ServiceName, e.cfg.InstanceID, healthRepo)
 
 	// Bước 2: Tạo Handler, TRUYỀN service vào (DI)
 	healthCheckHandler := handler.NewHealthCheck(healthCheckSvc)
