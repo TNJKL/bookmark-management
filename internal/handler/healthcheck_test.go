@@ -10,7 +10,6 @@ import (
 	"github.com/TNJKL/bookmark-management/internal/service/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 var testError = errors.New("test error")
@@ -19,7 +18,7 @@ func TestHealthCheck_HealthCheck(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		name             string
-		setupMockSvc     func() *mocks.HealthChecker
+		setupMockSvc     func(ctx *gin.Context) *mocks.HealthChecker
 		setupTestRequest func(ctx *gin.Context)
 
 		expectedStatusCode int
@@ -27,9 +26,9 @@ func TestHealthCheck_HealthCheck(t *testing.T) {
 	}{
 		{
 			name: "happy path",
-			setupMockSvc: func() *mocks.HealthChecker {
+			setupMockSvc: func(ctx *gin.Context) *mocks.HealthChecker {
 				mockSvc := mocks.NewHealthChecker(t)
-				mockSvc.On("HealthCheck", mock.Anything).
+				mockSvc.On("HealthCheck", ctx).
 					Return(&model.HealthCheckResponse{
 						Message:     "OK",
 						ServiceName: "bookmark_service",
@@ -45,9 +44,9 @@ func TestHealthCheck_HealthCheck(t *testing.T) {
 		},
 		{
 			name: "error case",
-			setupMockSvc: func() *mocks.HealthChecker {
+			setupMockSvc: func(ctx *gin.Context) *mocks.HealthChecker {
 				mockSvc := mocks.NewHealthChecker(t)
-				mockSvc.On("HealthCheck", mock.Anything).
+				mockSvc.On("HealthCheck", ctx).
 					Return(nil, testError)
 				return mockSvc
 			},
@@ -68,7 +67,7 @@ func TestHealthCheck_HealthCheck(t *testing.T) {
 
 			tc.setupTestRequest(ctx)
 
-			mockSvc := tc.setupMockSvc()
+			mockSvc := tc.setupMockSvc(ctx)
 
 			healthCheckHandler := NewHealthCheck(mockSvc)
 			healthCheckHandler.HealthCheck(ctx)
