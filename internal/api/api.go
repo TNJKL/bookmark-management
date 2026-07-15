@@ -8,6 +8,7 @@ import (
 	"github.com/TNJKL/bookmark-management/internal/handler"
 	"github.com/TNJKL/bookmark-management/internal/repository"
 	"github.com/TNJKL/bookmark-management/internal/service"
+	"github.com/TNJKL/bookmark-management/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
@@ -74,9 +75,12 @@ func (e *engine) initRoutes() {
 
 	//tạo repository
 	urlStorage := repository.NewURLStorage(e.redisClient)
+	//tao keyGenerate
+
+	keyGen := utils.NewKeyGenerator()
 
 	// Bước 1: Tạo Service
-	shortenUrlSvc := service.NewShortenUrl(urlStorage, genPassSvc)
+	shortenUrlSvc := service.NewShortenUrl(urlStorage, keyGen)
 
 	// Bước 2: Tạo Handler, TRUYỀN service vào (DI)
 	urlStorageHandler := handler.NewShortenURL(shortenUrlSvc)
@@ -85,5 +89,6 @@ func (e *engine) initRoutes() {
 	e.app.GET("/health-check", healthCheckHandler.HealthCheck)
 	e.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	e.app.POST("/v1/links/shorten", urlStorageHandler.ShortenLink)
+	e.app.GET("/v1/links/redirect/:code", urlStorageHandler.Redirect)
 
 }

@@ -3,9 +3,13 @@ definitions:
   handler.shortenInputBody:
     properties:
       exp:
+        minimum: 50000
         type: integer
       url:
         type: string
+    required:
+    - exp
+    - url
     type: object
   model.HealthCheckResponse:
     properties:
@@ -50,9 +54,26 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Kiểm tra trạng thái hệ thống
+      summary: System health-check
       tags:
       - health-check
+  /v1/links/redirect/{code}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Shorten code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+      tags:
+      - link
   /v1/links/shorten:
     post:
       consumes:

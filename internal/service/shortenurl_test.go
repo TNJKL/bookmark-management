@@ -6,11 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TNJKL/bookmark-management/internal/repository"
 	repoMocks "github.com/TNJKL/bookmark-management/internal/repository/mocks"
-	serviceMocks "github.com/TNJKL/bookmark-management/internal/service/mocks"
-	"github.com/redis/go-redis/v9"
+	ultilMocks "github.com/TNJKL/bookmark-management/pkg/utils/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 var errTest = errors.New("test error")
@@ -19,64 +18,65 @@ func TestShortenURL_CreateShortenLink(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name             string
-		setupMockGenPass func() *serviceMocks.GenPass
-		setupMockStorage func() *repoMocks.URLStorage
-		inputURL         string
-		inputExp         time.Duration
-		expectedCode     string
-		expectedErr      error
+		name                  string
+		setupMockKeyGenerator func() *ultilMocks.KeyGenerator
+		setupMockStorage      func(ctx context.Context) *repoMocks.URLStorage
+		inputURL              string
+		inputExp              int64
+		expectedCode          string
+		expectedErr           error
 	}{
 		{
-			name: "generate code error",
-			setupMockGenPass: func() *serviceMocks.GenPass {
-				mockGenPass := serviceMocks.NewGenPass(t)
-				mockGenPass.On("GeneratePassword", 7).Return("", errTest)
-				return mockGenPass
+			name: "get URL error",
+			setupMockKeyGenerator: func() *ultilMocks.KeyGenerator {
+				mockKeyGenerator := ultilMocks.NewKeyGenerator(t)
+				mockKeyGenerator.On("GenerateKey", 7).Return("Songoku")
+				return mockKeyGenerator
 			},
-			setupMockStorage: func() *repoMocks.URLStorage {
+			setupMockStorage: func(ctx context.Context) *repoMocks.URLStorage {
 				mockStorage := repoMocks.NewURLStorage(t)
+				mockStorage.On("GetURL", ctx, "Songoku").Return("", errTest)
 				return mockStorage
 			},
 			inputURL:     "https://google.com",
-			inputExp:     time.Hour,
+			inputExp:     3600,
 			expectedCode: "",
 			expectedErr:  errTest,
 		},
 		{
 			name: "store Url error",
-			setupMockGenPass: func() *serviceMocks.GenPass {
-				mockGenPass := serviceMocks.NewGenPass(t)
-				mockGenPass.On("GeneratePassword", 7).Return("Songoku", nil)
-				return mockGenPass
+			setupMockKeyGenerator: func() *ultilMocks.KeyGenerator {
+				mockKeyGenerator := ultilMocks.NewKeyGenerator(t)
+				mockKeyGenerator.On("GenerateKey", 7).Return("Songoku")
+				return mockKeyGenerator
 			},
-			setupMockStorage: func() *repoMocks.URLStorage {
+			setupMockStorage: func(ctx context.Context) *repoMocks.URLStorage {
 				mockStorage := repoMocks.NewURLStorage(t)
-				mockStorage.On("GetURL", mock.Anything, "Songoku").Return("", redis.Nil)
-				mockStorage.On("StoreURL", mock.Anything, "Songoku", "https://google.com", time.Hour).Return(errTest)
+				mockStorage.On("GetURL", ctx, "Songoku").Return("", repository.ErrorCodeNotFound)
+				mockStorage.On("StoreURL", ctx, "Songoku", "https://google.com", time.Hour).Return(errTest)
 				return mockStorage
 			},
 			inputURL:     "https://google.com",
-			inputExp:     time.Hour,
+			inputExp:     3600,
 			expectedCode: "",
 			expectedErr:  errTest,
 		},
 		{
 			name: "happy path",
-			setupMockGenPass: func() *serviceMocks.GenPass {
-				mockGenPass := serviceMocks.NewGenPass(t)
-				mockGenPass.On("GeneratePassword", 7).Return("Songoku", nil)
-				return mockGenPass
+			setupMockKeyGenerator: func() *ultilMocks.KeyGenerator {
+				mockKeyGenerator := ultilMocks.NewKeyGenerator(t)
+				mockKeyGenerator.On("GenerateKey", 7).Return("Songoku")
+				return mockKeyGenerator
 			},
 
-			setupMockStorage: func() *repoMocks.URLStorage {
+			setupMockStorage: func(ctx context.Context) *repoMocks.URLStorage {
 				mockStorage := repoMocks.NewURLStorage(t)
-				mockStorage.On("GetURL", mock.Anything, "Songoku").Return("", redis.Nil)
-				mockStorage.On("StoreURL", mock.Anything, "Songoku", "https://google.com", time.Hour).Return(nil)
+				mockStorage.On("GetURL", ctx, "Songoku").Return("", repository.ErrorCodeNotFound)
+				mockStorage.On("StoreURL", ctx, "Songoku", "https://google.com", time.Hour).Return(nil)
 				return mockStorage
 			},
 			inputURL:     "https://google.com",
-			inputExp:     time.Hour,
+			inputExp:     3600,
 			expectedCode: "Songoku",
 			expectedErr:  nil,
 		},
@@ -88,11 +88,11 @@ func TestShortenURL_CreateShortenLink(t *testing.T) {
 			ctx := context.Background()
 
 			//goi 2 ham setup Mock
-			mockGenPass := tc.setupMockGenPass()
-			mockStorage := tc.setupMockStorage()
+			mockKeyGenerator := tc.setupMockKeyGenerator()
+			mockStorage := tc.setupMockStorage(ctx)
 
 			//tao ShortenURL service , truyen mock vao
-			shortenURLsvc := NewShortenUrl(mockStorage, mockGenPass)
+			shortenURLsvc := NewShortenUrl(mockStorage, mockKeyGenerator)
 
 			//goi ham can test
 			code, err := shortenURLsvc.CreateShortenLink(ctx, tc.inputURL, tc.inputExp)
@@ -102,4 +102,62 @@ func TestShortenURL_CreateShortenLink(t *testing.T) {
 		})
 	}
 
+}
+
+func TestShortenURL_GetShortenLink(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		name             string
+		setupMockStorage func(ctx context.Context) *repoMocks.URLStorage
+		inputCode        string
+		expectedUrl      string
+		expectedErr      error
+	}{
+		{
+			name: "happy path",
+			setupMockStorage: func(ctx context.Context) *repoMocks.URLStorage {
+				mockStorage := repoMocks.NewURLStorage(t)
+				mockStorage.On("GetURL", ctx, "Songku").Return("https://google.com", nil)
+				return mockStorage
+			},
+			inputCode:   "Songku",
+			expectedUrl: "https://google.com",
+			expectedErr: nil,
+		},
+		{
+			name: "code not found",
+			setupMockStorage: func(ctx context.Context) *repoMocks.URLStorage {
+				mockStorage := repoMocks.NewURLStorage(t)
+				mockStorage.On("GetURL", ctx, "invalid-code").Return("", repository.ErrorCodeNotFound)
+				return mockStorage
+			},
+			inputCode:   "invalid-code",
+			expectedUrl: "",
+			expectedErr: repository.ErrorCodeNotFound,
+		},
+		{
+			name: "storage error",
+			setupMockStorage: func(ctx context.Context) *repoMocks.URLStorage {
+				mockStorage := repoMocks.NewURLStorage(t)
+				mockStorage.On("GetURL", ctx, "Songku").Return("", errTest)
+				return mockStorage
+			},
+			inputCode:   "Songku",
+			expectedUrl: "",
+			expectedErr: errTest,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := t.Context()
+			mockStorage := tc.setupMockStorage(ctx)
+
+			shortenURLsvc := NewShortenUrl(mockStorage, nil)
+			url, err := shortenURLsvc.GetLinkFromCode(ctx, tc.inputCode)
+			assert.Equal(t, tc.expectedUrl, url)
+			assert.Equal(t, tc.expectedErr, err)
+		})
+	}
 }

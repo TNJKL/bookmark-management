@@ -37,6 +37,15 @@ test:
        fi
 
 
+docker-build:
+	docker build -t bookmark-service-test:latest .
+
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down
+
 
 
 

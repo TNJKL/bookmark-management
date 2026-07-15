@@ -43,7 +43,7 @@ const docTemplate = `{
                 "tags": [
                     "health-check"
                 ],
-                "summary": "Kiểm tra trạng thái hệ thống",
+                "summary": "System health-check",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -59,6 +59,33 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/v1/links/redirect/{code}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "link"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shorten code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Found"
                     }
                 }
             }
@@ -103,9 +130,14 @@ const docTemplate = `{
     "definitions": {
         "handler.shortenInputBody": {
             "type": "object",
+            "required": [
+                "exp",
+                "url"
+            ],
             "properties": {
                 "exp": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 50000
                 },
                 "url": {
                     "type": "string"
