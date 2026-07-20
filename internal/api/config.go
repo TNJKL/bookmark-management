@@ -10,6 +10,7 @@ type Config struct {
 	ServiceName string `default:"bookmark_service'" envconfig:"SERVICE_NAME"`
 	InstanceID  string `default:"" envconfig:"INSTANCE_ID"`
 	LogLevel    string `default:"info" envconfig:"LOG_LEVEL"`
+	BasePath    string `default:"/" envconfig:"BASE_PATH"`
 }
 
 func NewConfig() (*Config, error) {

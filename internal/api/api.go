@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/TNJKL/bookmark-management/docs"
 	_ "github.com/TNJKL/bookmark-management/docs" // Load tài liệu Swagger đã generate
 	"github.com/TNJKL/bookmark-management/internal/handler"
 	"github.com/TNJKL/bookmark-management/internal/repository"
@@ -87,6 +88,7 @@ func (e *engine) initRoutes() {
 
 	e.app.GET("/genpass", genPassHandler.GeneratePassword)
 	e.app.GET("/health-check", healthCheckHandler.HealthCheck)
+	docs.SwaggerInfo.BasePath = e.cfg.BasePath
 	e.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	e.app.POST("/v1/links/shorten", urlStorageHandler.ShortenLink)
 	e.app.GET("/v1/links/redirect/:code", urlStorageHandler.Redirect)

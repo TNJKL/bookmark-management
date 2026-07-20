@@ -50,7 +50,7 @@ func TestShortenURL_ShortenLink(t *testing.T) {
 				ctx.Request.Header.Set("Content-Type", "application/json")
 			},
 			expectedStatusCode: http.StatusBadRequest,
-			expectedResponse:   `{"error":"Invalid input"}`,
+			expectedResponse:   `{"message":"Input error"}`,
 		},
 		{
 			name: "service error",
@@ -65,7 +65,7 @@ func TestShortenURL_ShortenLink(t *testing.T) {
 				ctx.Request.Header.Set("Content-Type", "application/json")
 			},
 			expectedStatusCode: http.StatusInternalServerError,
-			expectedResponse:   `{"error":"Internal Server Error"}`,
+			expectedResponse:   `{"message":"Processing error"}`,
 		},
 	}
 	for _, tc := range testCases {

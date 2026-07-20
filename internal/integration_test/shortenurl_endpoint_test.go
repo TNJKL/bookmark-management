@@ -54,7 +54,7 @@ func TestShortenURLEndpoint(t *testing.T) {
 				return rec
 			},
 			expectedStatusCode:   http.StatusBadRequest,
-			expectedResponseBody: `{"error":"Invalid input"}`,
+			expectedResponseBody: `{"message":"Input error"}`,
 		},
 		{
 			name: "wrong endpoint method",
@@ -86,7 +86,7 @@ func TestShortenURLEndpoint(t *testing.T) {
 				return rec
 			},
 			expectedStatusCode:   http.StatusInternalServerError,
-			expectedResponseBody: `{"error":"Internal Server Error"}`,
+			expectedResponseBody: `{"message":"Processing error"}`,
 		},
 	}
 	for _, tc := range testCases {
@@ -145,7 +145,7 @@ func TestRedirectEnpoint(t *testing.T) {
 			},
 			expectedStatusCode:   http.StatusNotFound,
 			expectedURL:          "",
-			expectedResponseBody: `{"error":"Code not found"}`,
+			expectedResponseBody: `{"message":"Input error"}`,
 		},
 		{
 			name: "redis connection error",
@@ -162,7 +162,7 @@ func TestRedirectEnpoint(t *testing.T) {
 			},
 			expectedStatusCode:   http.StatusInternalServerError,
 			expectedURL:          "",
-			expectedResponseBody: `"{error": "Internal Server Error"}`,
+			expectedResponseBody: `{"message":"Processing error"}`,
 		},
 	}
 	for _, tc := range testCases {

@@ -137,7 +137,7 @@ const docTemplate = `{
             "properties": {
                 "exp": {
                     "type": "integer",
-                    "minimum": 50000
+                    "minimum": 300
                 },
                 "url": {
                     "type": "string"

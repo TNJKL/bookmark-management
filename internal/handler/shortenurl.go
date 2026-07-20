@@ -6,6 +6,7 @@ import (
 
 	"github.com/TNJKL/bookmark-management/internal/repository"
 	"github.com/TNJKL/bookmark-management/internal/service"
+	"github.com/TNJKL/bookmark-management/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
@@ -25,7 +26,7 @@ type shortenURL struct {
 // shortenInputBody is the expected JSON request body for creating a shortened URL.
 type shortenInputBody struct {
 	Url string `json:"url" binding:"required,url"`
-	Exp int64  `json:"exp" binding:"required,gte=50000"`
+	Exp int64  `json:"exp" binding:"required,gte=300"`
 }
 
 // NewShortenURL creates a new ShortenURL handler backed by the given service.
@@ -50,7 +51,7 @@ func (s *shortenURL) ShortenLink(ctx *gin.Context) {
 	// Và struct đó sẽ parse dữ liệu đúng như vậy
 	input := &shortenInputBody{}
 	if err := ctx.ShouldBindJSON(input); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.InputFieldError(err))
 		return
 	}
 
@@ -59,7 +60,7 @@ func (s *shortenURL) ShortenLink(ctx *gin.Context) {
 	code, err := s.service.CreateShortenLink(ctx, input.Url, input.Exp)
 	if err != nil {
 		log.Error().Err(err).Str("from", "handler.shortenURL.ShortenLink").Msg("Can't create shorten url")
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, response.InternalErrResponse)
 		return
 	}
 	//return respone
@@ -76,19 +77,19 @@ func (s *shortenURL) ShortenLink(ctx *gin.Context) {
 func (s *shortenURL) Redirect(ctx *gin.Context) {
 	code := ctx.Param("code")
 	if code == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		ctx.JSON(http.StatusBadRequest, response.InputErrResponse)
 		return
 	}
 
 	url, err := s.service.GetLinkFromCode(ctx, code)
 	if err != nil {
 		if errors.Is(err, repository.ErrorCodeNotFound) {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Code not found"})
+			ctx.JSON(http.StatusNotFound, response.InputErrResponse)
 			return
 		}
 
 		log.Error().Err(err).Str("from", "handler.shortenURL.Redirect").Msg("Can't get url from code")
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		ctx.JSON(http.StatusInternalServerError, response.InternalErrResponse)
 		return
 	}
 
