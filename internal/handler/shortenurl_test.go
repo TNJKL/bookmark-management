@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,7 +10,6 @@ import (
 	"github.com/TNJKL/bookmark-management/internal/service/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestShortenURL_ShortenLink(t *testing.T) {
@@ -17,20 +17,20 @@ func TestShortenURL_ShortenLink(t *testing.T) {
 
 	testCases := []struct {
 		name               string
-		setupMockSvc       func() *mocks.ShortenURL
+		setupMockSvc       func(ctx context.Context) *mocks.ShortenURL
 		setupTestRequest   func(ctx *gin.Context)
 		expectedStatusCode int
 		expectedResponse   string
 	}{
 		{
 			name: "happy path",
-			setupMockSvc: func() *mocks.ShortenURL {
+			setupMockSvc: func(ctx context.Context) *mocks.ShortenURL {
 				mockSvc := mocks.NewShortenURL(t)
-				mockSvc.On("CreateShortenLink", mock.Anything, mock.Anything, mock.Anything).Return("Songoku", nil)
+				mockSvc.On("CreateShortenLink", ctx, "https://google.com", int64(50000)).Return("Songoku", nil)
 				return mockSvc
 			},
 			setupTestRequest: func(ctx *gin.Context) {
-				body := bytes.NewBufferString(`{"url":"https://google.com","exp":100000000}`)
+				body := bytes.NewBufferString(`{"url":"https://google.com","exp":50000}`)
 				ctx.Request = httptest.NewRequest(http.MethodPost, "/v1/links/shorten", body)
 				ctx.Request.Header.Set("Content-Type", "application/json")
 			},
@@ -40,7 +40,7 @@ func TestShortenURL_ShortenLink(t *testing.T) {
 
 		{
 			name: "invalid input",
-			setupMockSvc: func() *mocks.ShortenURL {
+			setupMockSvc: func(ctx context.Context) *mocks.ShortenURL {
 				//ko cần setup gì ShouldByJSON lỗi thì ko gọi tới service
 				return mocks.NewShortenURL(t)
 			},
@@ -54,13 +54,13 @@ func TestShortenURL_ShortenLink(t *testing.T) {
 		},
 		{
 			name: "service error",
-			setupMockSvc: func() *mocks.ShortenURL {
+			setupMockSvc: func(ctx context.Context) *mocks.ShortenURL {
 				mockSvc := mocks.NewShortenURL(t)
-				mockSvc.On("CreateShortenLink", mock.Anything, mock.Anything, mock.Anything).Return("", testError)
+				mockSvc.On("CreateShortenLink", ctx, "https://google.com", int64(50000)).Return("", testError)
 				return mockSvc
 			},
 			setupTestRequest: func(ctx *gin.Context) {
-				body := bytes.NewBufferString(`{"url":"https://google.com","exp":100000000}`)
+				body := bytes.NewBufferString(`{"url":"https://google.com","exp":50000}`)
 				ctx.Request = httptest.NewRequest(http.MethodPost, "/v1/links/shorten", body)
 				ctx.Request.Header.Set("Content-Type", "application/json")
 			},
@@ -74,12 +74,68 @@ func TestShortenURL_ShortenLink(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx, _ := gin.CreateTestContext(rec)
 			tc.setupTestRequest(ctx)
-			mockSvc := tc.setupMockSvc()
+			mockSvc := tc.setupMockSvc(ctx)
 			shortenHandler := NewShortenURL(mockSvc)
 			shortenHandler.ShortenLink(ctx)
 
 			assert.Equal(t, tc.expectedStatusCode, rec.Code)
 			assert.Contains(t, rec.Body.String(), tc.expectedResponse)
+		})
+	}
+
+}
+
+func TestShortenURL_Redirect(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name               string
+		setupMockSvc       func(ctx context.Context) *mocks.ShortenURL
+		setupTestRequest   func(ctx *gin.Context)
+		expectedStatusCode int
+		expectedURL        string
+	}{
+		{
+			name: "happy path",
+			setupMockSvc: func(ctx context.Context) *mocks.ShortenURL {
+				mockSvc := mocks.NewShortenURL(t)
+				mockSvc.On("GetLinkFromCode", ctx, "Songoku").Return("https://google.com", nil)
+				return mockSvc
+			},
+			setupTestRequest: func(ctx *gin.Context) {
+				ctx.Request = httptest.NewRequest(http.MethodGet, "/v1/links/redirect/Songoku", nil)
+				ctx.Params = gin.Params{{Key: "code", Value: "Songoku"}}
+			},
+			expectedStatusCode: http.StatusFound,
+			expectedURL:        "https://google.com",
+		},
+		{
+			name: "errros case",
+			setupMockSvc: func(ctx context.Context) *mocks.ShortenURL {
+				mockSvc := mocks.NewShortenURL(t)
+				mockSvc.On("GetLinkFromCode", ctx, "Songoku").Return("", testError)
+				return mockSvc
+			},
+			setupTestRequest: func(ctx *gin.Context) {
+				ctx.Request = httptest.NewRequest(http.MethodGet, "/v1/links/redirect/Songoku", nil)
+				ctx.Params = gin.Params{{Key: "code", Value: "Songoku"}}
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			expectedURL:        "",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			rec := httptest.NewRecorder()
+			ctx, _ := gin.CreateTestContext(rec)
+			tc.setupTestRequest(ctx)
+			mockSvc := tc.setupMockSvc(ctx)
+			shortenHandler := NewShortenURL(mockSvc)
+			shortenHandler.Redirect(ctx)
+
+			assert.Equal(t, tc.expectedStatusCode, rec.Code)
+			assert.Equal(t, tc.expectedURL, rec.Header().Get("Location"))
 		})
 	}
 

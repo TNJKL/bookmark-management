@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -32,7 +33,14 @@ func (u *urlStorage) StoreURL(ctx context.Context, code, url string, exp time.Du
 	return u.rclient.Set(ctx, code, url, exp).Err()
 }
 
+// ErrorCodeNotFound is returned when the code does not exist.
+var ErrorCodeNotFound = errors.New("Code not found")
+
 // GetURL fetches the url stored under code, or an error if not found.
 func (u *urlStorage) GetURL(ctx context.Context, code string) (string, error) {
-	return u.rclient.Get(ctx, code).Result()
+	res, err := u.rclient.Get(ctx, code).Result()
+	if errors.Is(err, redis.Nil) {
+		return "", ErrorCodeNotFound
+	}
+	return res, err
 }

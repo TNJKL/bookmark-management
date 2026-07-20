@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/TNJKL/bookmark-management/internal/api"
+	"github.com/TNJKL/bookmark-management/pkg/logger"
 	redisPkg "github.com/TNJKL/bookmark-management/pkg/redis"
 )
 
@@ -15,6 +16,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	//set log level
+	logger.SetLogLevel(cfg.LogLevel)
+
 	//create redis client
 	redisClient, err := redisPkg.NewClient("")
 	if err != nil {

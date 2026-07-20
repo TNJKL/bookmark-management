@@ -19,7 +19,7 @@ func TestUrlStorage_StoreURL(t *testing.T) {
 	testCases := []struct {
 		name string
 
-		setupMock func(ctx context.Context, t *testing.T) *redis.Client
+		setupMock func(ctx context.Context) *redis.Client
 
 		expectedErr error
 
@@ -28,7 +28,7 @@ func TestUrlStorage_StoreURL(t *testing.T) {
 		{
 			name: "normal case",
 
-			setupMock: func(ctx context.Context, t *testing.T) *redis.Client {
+			setupMock: func(ctx context.Context) *redis.Client {
 				mock := redisPkg.InitMockRedis(t)
 				return mock
 			},
@@ -54,7 +54,7 @@ func TestUrlStorage_StoreURL(t *testing.T) {
 		{
 			name: "connection error",
 
-			setupMock: func(ctx context.Context, t *testing.T) *redis.Client {
+			setupMock: func(ctx context.Context) *redis.Client {
 				mock := redisPkg.InitMockRedis(t)
 				_ = mock.Close()
 				return mock
@@ -68,7 +68,7 @@ func TestUrlStorage_StoreURL(t *testing.T) {
 			t.Parallel()
 			ctx := t.Context()
 
-			mock := tc.setupMock(ctx, t)
+			mock := tc.setupMock(ctx)
 			storage := NewURLStorage(mock)
 			err := storage.StoreURL(ctx, "test", "https://google.com", time.Hour)
 			assert.Equal(t, tc.expectedErr, err)
@@ -80,4 +80,59 @@ func TestUrlStorage_StoreURL(t *testing.T) {
 		})
 	}
 
+}
+
+func TestUrlStorage_GetURL(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		name        string
+		setupMock   func(ctx context.Context) *redis.Client
+		expectedVal string
+		expectedErr error
+	}{
+		{
+			name: "normal case",
+			setupMock: func(ctx context.Context) *redis.Client {
+				mock := redisPkg.InitMockRedis(t)
+
+				err := mock.Set(ctx, "Songoku", "https://google.com", 500000).Err()
+				assert.NoError(t, err)
+				return mock
+			},
+			expectedVal: "https://google.com",
+			expectedErr: nil,
+		},
+		{
+			name: "code not found",
+			setupMock: func(ctx context.Context) *redis.Client {
+				mock := redisPkg.InitMockRedis(t)
+				return mock
+			},
+			expectedVal: "",
+			expectedErr: ErrorCodeNotFound,
+		},
+		{
+			name: "connection error",
+			setupMock: func(ctx context.Context) *redis.Client {
+				mock := redisPkg.InitMockRedis(t)
+				_ = mock.Close()
+				return mock
+			},
+			expectedVal: "",
+			expectedErr: redis.ErrClosed,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := t.Context()
+			mock := tc.setupMock(ctx)
+			storage := NewURLStorage(mock)
+			val, err := storage.GetURL(ctx, "Songoku")
+
+			assert.Equal(t, tc.expectedVal, val)
+			assert.Equal(t, tc.expectedErr, err)
+		})
+
+	}
 }
