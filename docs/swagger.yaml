@@ -3,7 +3,7 @@ definitions:
   handler.shortenInputBody:
     properties:
       exp:
-        minimum: 50000
+        minimum: 300
         type: integer
       url:
         type: string
