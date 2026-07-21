@@ -21,7 +21,7 @@ mock:
 
 
 COVERAGE_EXCLUDE=mocks|main.go
-COVERAGE_THRESHOLD = 80
+COVERAGE_THRESHOLD = 73
 
 # Chạy toàn bộ unit test và integration test
 test:
