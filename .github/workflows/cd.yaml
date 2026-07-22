@@ -17,8 +17,8 @@ jobs:
         working-directory: /root/bookmark-management
         run: |
           echo "Deploying application..."
-          git pull
           cd ./deployment
+          git pull
           docker rm -f bookmark_service
           docker-compose pull bookmark_service
           docker-compose up -d bookmark_service
