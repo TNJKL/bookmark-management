@@ -76,7 +76,7 @@ DOCKER_USERNAME ?=
 DOCKER_PASSWORD ?=
 
 docker-login:
-	echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
+	echo "$$(DOCKER_PASSWORD)" | docker login -u "$$(DOCKER_USERNAME)" --password-stdin
 
 docker-release:
 	docker push $(IMG_NAME):$(IMG_TAG)
