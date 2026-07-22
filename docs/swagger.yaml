@@ -24,7 +24,7 @@ info:
   contact: {}
   description: API Swagger for Bookmark-Management.
   title: Bookmark Management API
-  version: 1.5.0
+  version: 3.5.0
 paths:
   /genpass:
     get:
