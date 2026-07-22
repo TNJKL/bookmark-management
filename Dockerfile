@@ -1,4 +1,4 @@
-FROM golang:1.26-alpine as build
+FROM golang:1.26-alpine AS base
 
 RUN mkdir -p /opt/app
 
@@ -6,12 +6,44 @@ WORKDIR /opt/app
 
 COPY . .
 
-RUN go build -o bookmark-service cmd/api/main.go
+FROM base AS build
 
-FROM  alpine:3.24.1
+RUN apk add build-base
+
+RUN go mod download && \
+GOOS=linux go build -tags musl -ldflags "-w -s" -o bookmark_service cmd/api/main.go
+
+FROM base AS test-exec
+
+ARG _outputdir="/tmp/coverage"
+ARG COVERAGE_EXCLUDE
+
+
+
+RUN mkdir -p ${_outputdir} && \
+    go test ./... -coverprofile=coverage.tmp -coverpkg=./... -covermode=atomic -p 1 && \
+    grep -v -E "${COVERAGE_EXCLUDE}" coverage.tmp > ${_outputdir}/coverage.out && \
+    go tool cover -html=${_outputdir}/coverage.out -o ${_outputdir}/coverage.html
+
+
+FROM scratch AS test
+
+ARG _outputdir="/tmp/coverage"
+
+COPY --from=test-exec ${_outputdir}/coverage.out /
+COPY --from=test-exec ${_outputdir}/coverage.html /
+
+
+FROM  alpine:3.24.1 AS final
+
+ARG app_name=app
+ENV TZ=Asia/Ho_Chi_Minh
 
 WORKDIR /app
 
-COPY --from=build /opt/app/bookmark-service /app/bookmark-service
+COPY --from=build /opt/app/bookmark_service /app/bookmark_service
 COPY --from=build /opt/app/docs /app/docs
-CMD ["/app/bookmark-service"]
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+CMD ["/app/bookmark_service"]
