@@ -7,7 +7,7 @@ import (
 )
 
 // @title       Bookmark Management API
-// @version     3.5.0
+// @version     4.0.0
 // @description API Swagger for Bookmark-Management.
 // @BasePath    /
 func main() {
