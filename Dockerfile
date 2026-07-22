@@ -6,19 +6,18 @@ WORKDIR /opt/app
 
 COPY . .
 
+RUN go mod download
+
 FROM base AS build
 
 RUN apk add build-base
 
-RUN go mod download && \
-GOOS=linux go build -tags musl -ldflags "-w -s" -o bookmark_service cmd/api/main.go
+RUN GOOS=linux go build -tags musl -ldflags "-w -s" -o bookmark_service cmd/api/main.go
 
 FROM base AS test-exec
 
 ARG _outputdir="/tmp/coverage"
 ARG COVERAGE_EXCLUDE
-
-
 
 RUN mkdir -p ${_outputdir} && \
     go test ./... -coverprofile=coverage.tmp -coverpkg=./... -covermode=atomic -p 1 && \

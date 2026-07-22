@@ -7,9 +7,8 @@ import (
 )
 
 // @title       Bookmark Management API
-// @version     1.5.0
+// @version     2.0.0
 // @description API Swagger for Bookmark-Management.
-// host         localhost/api/bookmark_service/
 // @BasePath    /
 func main() {
 	//create app config
