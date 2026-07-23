@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TNJKL/bookmark-management/internal/repository"
 	repoMocks "github.com/TNJKL/bookmark-management/internal/repository/mocks"
+	"github.com/TNJKL/bookmark-management/internal/repository/urlstorage"
 	ultilMocks "github.com/TNJKL/bookmark-management/pkg/utils/mocks"
 	"github.com/stretchr/testify/assert"
 )
@@ -52,7 +52,7 @@ func TestShortenURL_CreateShortenLink(t *testing.T) {
 			},
 			setupMockStorage: func(ctx context.Context) *repoMocks.URLStorage {
 				mockStorage := repoMocks.NewURLStorage(t)
-				mockStorage.On("GetURL", ctx, "Songoku").Return("", repository.ErrorCodeNotFound)
+				mockStorage.On("GetURL", ctx, "Songoku").Return("", urlstorage.ErrorCodeNotFound)
 				mockStorage.On("StoreURL", ctx, "Songoku", "https://google.com", time.Hour).Return(errTest)
 				return mockStorage
 			},
@@ -71,7 +71,7 @@ func TestShortenURL_CreateShortenLink(t *testing.T) {
 
 			setupMockStorage: func(ctx context.Context) *repoMocks.URLStorage {
 				mockStorage := repoMocks.NewURLStorage(t)
-				mockStorage.On("GetURL", ctx, "Songoku").Return("", repository.ErrorCodeNotFound)
+				mockStorage.On("GetURL", ctx, "Songoku").Return("", urlstorage.ErrorCodeNotFound)
 				mockStorage.On("StoreURL", ctx, "Songoku", "https://google.com", time.Hour).Return(nil)
 				return mockStorage
 			},
@@ -128,12 +128,12 @@ func TestShortenURL_GetShortenLink(t *testing.T) {
 			name: "code not found",
 			setupMockStorage: func(ctx context.Context) *repoMocks.URLStorage {
 				mockStorage := repoMocks.NewURLStorage(t)
-				mockStorage.On("GetURL", ctx, "invalid-code").Return("", repository.ErrorCodeNotFound)
+				mockStorage.On("GetURL", ctx, "invalid-code").Return("", urlstorage.ErrorCodeNotFound)
 				return mockStorage
 			},
 			inputCode:   "invalid-code",
 			expectedUrl: "",
-			expectedErr: repository.ErrorCodeNotFound,
+			expectedErr: urlstorage.ErrorCodeNotFound,
 		},
 		{
 			name: "storage error",

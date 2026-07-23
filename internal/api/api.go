@@ -7,7 +7,8 @@ import (
 	"github.com/TNJKL/bookmark-management/docs"
 	_ "github.com/TNJKL/bookmark-management/docs" // Load tài liệu Swagger đã generate
 	"github.com/TNJKL/bookmark-management/internal/handler"
-	"github.com/TNJKL/bookmark-management/internal/repository"
+	"github.com/TNJKL/bookmark-management/internal/repository/ping"
+	"github.com/TNJKL/bookmark-management/internal/repository/urlstorage"
 	"github.com/TNJKL/bookmark-management/internal/service"
 	"github.com/TNJKL/bookmark-management/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -66,7 +67,7 @@ func (e *engine) initRoutes() {
 	//khai bao Health check handler
 
 	// Bước 1: Tạo Service
-	healthRepo := repository.NewHealthRepository(e.redisClient)
+	healthRepo := ping.NewHealthRepository(e.redisClient)
 	healthCheckSvc := service.NewHealthCheck(e.cfg.ServiceName, e.cfg.InstanceID, healthRepo)
 
 	// Bước 2: Tạo Handler, TRUYỀN service vào (DI)
@@ -75,7 +76,7 @@ func (e *engine) initRoutes() {
 	//khai bao Shorten URL handler
 
 	//tạo repository
-	urlStorage := repository.NewURLStorage(e.redisClient)
+	urlStorage := urlstorage.NewURLStorage(e.redisClient)
 	//tao keyGenerate
 
 	keyGen := utils.NewKeyGenerator()

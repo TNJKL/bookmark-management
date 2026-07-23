@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/TNJKL/bookmark-management/internal/repository"
+	"github.com/TNJKL/bookmark-management/internal/repository/urlstorage"
 	"github.com/TNJKL/bookmark-management/pkg/utils"
 )
 
@@ -23,12 +23,12 @@ type ShortenURL interface {
 // mock GenPass & Storage de test
 // shortenURL is the default implementation of the ShortenURL interface.
 type shortenURL struct {
-	storage repository.URLStorage
+	storage urlstorage.URLStorage
 	keyGen  utils.KeyGenerator
 }
 
 // NewShortenURL creates a new ShortenURL service  instance.
-func NewShortenUrl(storage repository.URLStorage, keyGen utils.KeyGenerator) ShortenURL {
+func NewShortenUrl(storage urlstorage.URLStorage, keyGen utils.KeyGenerator) ShortenURL {
 	return &shortenURL{
 		storage: storage,
 		keyGen:  keyGen,
@@ -48,7 +48,7 @@ func (s *shortenURL) CreateShortenLink(ctx context.Context, url string, exp int6
 
 	res, err := s.storage.GetURL(ctx, key)
 
-	if err != nil && !errors.Is(err, repository.ErrorCodeNotFound) {
+	if err != nil && !errors.Is(err, urlstorage.ErrorCodeNotFound) {
 		return "", err
 	}
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/TNJKL/bookmark-management/internal/model"
-	"github.com/TNJKL/bookmark-management/internal/repository"
+	"github.com/TNJKL/bookmark-management/internal/repository/ping"
 )
 
 //healthcheck interface
@@ -22,12 +22,12 @@ type HealthChecker interface {
 type healthCheckService struct {
 	serviceName string
 	instanceID  string
-	healthRepo  repository.HealthRepository
+	healthRepo  ping.HealthRepository
 }
 
 // constructor khởi tạo
 // NewHealthCheck creates a new HealthChecker service instance.
-func NewHealthCheck(serviceName string, instanceID string, healthRepo repository.HealthRepository) HealthChecker {
+func NewHealthCheck(serviceName string, instanceID string, healthRepo ping.HealthRepository) HealthChecker {
 	return &healthCheckService{
 		serviceName: serviceName,
 		instanceID:  instanceID,

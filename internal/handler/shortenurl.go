@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/TNJKL/bookmark-management/internal/repository"
+	"github.com/TNJKL/bookmark-management/internal/repository/urlstorage"
 	"github.com/TNJKL/bookmark-management/internal/service"
 	"github.com/TNJKL/bookmark-management/pkg/response"
 	"github.com/gin-gonic/gin"
@@ -83,7 +83,7 @@ func (s *shortenURL) Redirect(ctx *gin.Context) {
 
 	url, err := s.service.GetLinkFromCode(ctx, code)
 	if err != nil {
-		if errors.Is(err, repository.ErrorCodeNotFound) {
+		if errors.Is(err, urlstorage.ErrorCodeNotFound) {
 			ctx.JSON(http.StatusNotFound, response.InputErrResponse)
 			return
 		}
