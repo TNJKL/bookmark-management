@@ -125,6 +125,40 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/users/register": {
+            "post": {
+                "description": "Register a new user with the provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User registration details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.registerInputBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Register an user successfully!",
+                        "schema": {
+                            "$ref": "#/definitions/user.registerResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -154,6 +188,63 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "service_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.registerInputBody": {
+            "type": "object",
+            "required": [
+                "display_name",
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.registerResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/model.User"
+                },
+                "message": {
                     "type": "string"
                 }
             }

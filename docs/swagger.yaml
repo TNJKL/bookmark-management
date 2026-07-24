@@ -20,6 +20,44 @@ definitions:
       service_name:
         type: string
     type: object
+  model.User:
+    properties:
+      created_at:
+        type: string
+      display_name:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  user.registerInputBody:
+    properties:
+      display_name:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - display_name
+    - email
+    - password
+    - username
+    type: object
+  user.registerResponse:
+    properties:
+      data:
+        $ref: '#/definitions/model.User'
+      message:
+        type: string
+    type: object
 info:
   contact: {}
   description: API Swagger for Bookmark-Management.
@@ -97,4 +135,26 @@ paths:
             type: object
       tags:
       - link
+  /v1/users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with the provided information
+      parameters:
+      - description: User registration details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user.registerInputBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Register an user successfully!
+          schema:
+            $ref: '#/definitions/user.registerResponse'
+      summary: Register a new user
+      tags:
+      - User
 swagger: "2.0"
