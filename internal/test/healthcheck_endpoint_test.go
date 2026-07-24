@@ -77,7 +77,7 @@ func TestHealthCheckEndpoint(t *testing.T) {
 			//gọi Parallel để chạy song song các test case
 			t.Parallel()
 			redisClient := tc.setupRedis(t)
-			testAPI := api.NewEngine(&api.Config{ServiceName: "service_name_test", InstanceID: "instance_test_id"}, redisClient)
+			testAPI := api.NewEngine(&api.Config{ServiceName: "service_name_test", InstanceID: "instance_test_id"}, redisClient, nil)
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
