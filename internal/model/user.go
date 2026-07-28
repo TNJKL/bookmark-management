@@ -14,8 +14,8 @@ type User struct {
 	Username    string    `json:"username" gorm:"unique"`
 	Password    string    `json:"-"`
 	Email       string    `json:"email" gorm:"unique"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	CreatedAt   time.Time `json:"created_at,omitempty"`
+	UpdatedAt   time.Time `json:"updated_at,omitempty"`
 }
 
 // BeforeCreate is a GORM hook that automatically generates a new UUID for the user ID if empty

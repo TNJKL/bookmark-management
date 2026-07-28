@@ -87,7 +87,7 @@ func TestService_CreateUser(t *testing.T) {
 			mockHasher := tc.setupMockHasher()
 			mockRepo := tc.setupMockRepo(ctx)
 
-			svc := NewService(mockRepo, mockHasher)
+			svc := NewService(mockRepo, mockHasher, nil)
 
 			user, err := svc.CreateUser(ctx, inputUsername, inputPassword, inputDisplayName, inputEmail)
 			assert.Equal(t, tc.expectedUser, user)

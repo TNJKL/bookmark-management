@@ -31,7 +31,7 @@ type registerResponse struct {
 //
 // @Summary Register a new user
 // @Description Register a new user with the provided information
-// @Tags User
+// @Tags user
 // @Accept json
 // @Produce json
 // @Param body body registerInputBody true "User registration details"

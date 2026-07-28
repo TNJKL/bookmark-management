@@ -24,14 +24,14 @@ func (u *UserCommonTestDB) GenerateData() error {
 			ID:          "deb745af-1a62-4efa-99a0-f06b274bd990",
 			DisplayName: "John Doe",
 			Username:    "johndoe",
-			Password:    "password123",
+			Password:    "Kakarot1996@",
 			Email:       "johndoe@example.com",
 		},
 		{
 			ID:          "deb745af-1a62-4efa-99a0-f06b274bd991",
 			DisplayName: "Jane Doe",
 			Username:    "janedoe",
-			Password:    "password123",
+			Password:    "Kakarot1996@",
 			Email:       "janedoe@example.com",
 		},
 	}

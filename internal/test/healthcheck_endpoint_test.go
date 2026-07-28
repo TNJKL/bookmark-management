@@ -7,6 +7,7 @@ import (
 
 	"github.com/TNJKL/bookmark-management/internal/api"
 	redisPkg "github.com/TNJKL/bookmark-management/pkg/redis"
+	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
@@ -77,7 +78,11 @@ func TestHealthCheckEndpoint(t *testing.T) {
 			//gọi Parallel để chạy song song các test case
 			t.Parallel()
 			redisClient := tc.setupRedis(t)
-			testAPI := api.NewEngine(&api.Config{ServiceName: "service_name_test", InstanceID: "instance_test_id"}, redisClient, nil)
+			testAPI := api.NewEngine(&api.EngineOpts{
+				App:         gin.New(),
+				Cfg:         &api.Config{ServiceName: "service_name_test", InstanceID: "instance_test_id"},
+				RedisClient: redisClient,
+			})
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)

@@ -1,0 +1,9 @@
+.idea/
+coverage/
+coverage.html
+coverage.out
+coverage.tmp
+bookmark-service
+.env
+private.pem
+public.pem
