@@ -10,6 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	privateKeyPath = "./private.pem"
+	publicKeyPath  = "./public.pem"
+)
+
 // @title       Bookmark Management API
 // @version     4.0.0
 // @description API Swagger for Bookmark-Management.
@@ -44,13 +49,13 @@ func main() {
 	}
 
 	//create jwtGen
-	jwtGen, err := jwtutils.NewJWTGenerator("./private.pem")
+	jwtGen, err := jwtutils.NewJWTGenerator(privateKeyPath)
 	if err != nil {
 		panic(err)
 	}
 
 	//create jwtVal
-	jwtVal, err := jwtutils.NewJWTValidator("./public.pem")
+	jwtVal, err := jwtutils.NewJWTValidator(publicKeyPath)
 	if err != nil {
 		panic(err)
 	}

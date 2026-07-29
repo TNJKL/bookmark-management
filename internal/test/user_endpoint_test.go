@@ -158,11 +158,7 @@ func TestRegisterEndpoint(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
 
-			testAPI := api.NewEngine(&api.EngineOpts{
-				App: gin.New(),
-				Cfg: &api.Config{},
-				Db:  db,
-			})
+			testAPI := buildTestAPI(db, nil, nil)
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
@@ -179,10 +175,7 @@ type loginInput struct {
 
 func TestLoginEndpoint(t *testing.T) {
 	t.Parallel()
-	jwtGen, err := jwtutils.NewJWTGenerator("../../pkg/jwtutils/test.private.key")
-	assert.NoError(t, err)
-	jwtVal, err := jwtutils.NewJWTValidator("../../pkg/jwtutils/test.public.key")
-	assert.NoError(t, err)
+	jwtGen, jwtVal := setupTestJWT(t)
 
 	testCases := []struct {
 		name               string
@@ -215,7 +208,6 @@ func TestLoginEndpoint(t *testing.T) {
 			expectedStatusCode: http.StatusOK,
 			expectedResponse:   `"message":"Logged in successfully"`,
 		},
-
 		{
 			name: "invalid credentials - wrong password",
 			setupDB: func(t *testing.T) *gorm.DB {
@@ -247,13 +239,7 @@ func TestLoginEndpoint(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
 
-			testAPI := api.NewEngine(&api.EngineOpts{
-				App:    gin.New(),
-				Cfg:    &api.Config{},
-				Db:     db,
-				JWTGen: jwtGen,
-				JWTVal: jwtVal,
-			})
+			testAPI := buildTestAPI(db, jwtGen, jwtVal)
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
 			assert.Contains(t, recorder.Body.String(), tc.expectedResponse)
@@ -263,10 +249,8 @@ func TestLoginEndpoint(t *testing.T) {
 
 func TestGetSelfInfoEndpoint(t *testing.T) {
 	t.Parallel()
-	jwtGen, err := jwtutils.NewJWTGenerator("../../pkg/jwtutils/test.private.key")
-	assert.NoError(t, err)
-	jwtVal, err := jwtutils.NewJWTValidator("../../pkg/jwtutils/test.public.key")
-	assert.NoError(t, err)
+	jwtGen, jwtVal := setupTestJWT(t)
+
 	testCases := []struct {
 		name               string
 		setupDB            func(t *testing.T) *gorm.DB
@@ -280,13 +264,7 @@ func TestGetSelfInfoEndpoint(t *testing.T) {
 				return fixtures.NewFixture(t, &fixtures.UserCommonTestDB{})
 			},
 			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				tokenContent := jwt.MapClaims{
-					"sub":   "deb745af-1a62-4efa-99a0-f06b274bd990",
-					"email": "johndoe@example.com",
-					"iat":   time.Now().Unix(),
-					"exp":   time.Now().Add(24 * time.Hour).Unix(),
-				}
-				token, _ := jwtGen.GenerateJWT(tokenContent)
+				token := generateTestToken(t, jwtGen, "deb745af-1a62-4efa-99a0-f06b274bd990", "johndoe@example.com")
 				req := httptest.NewRequest(http.MethodGet, "/v1/self/info", nil)
 				req.Header.Set("Authorization", "Bearer "+token)
 				rec := httptest.NewRecorder()
@@ -296,14 +274,12 @@ func TestGetSelfInfoEndpoint(t *testing.T) {
 			expectedStatusCode: http.StatusOK,
 			expectedResponse:   `"username":"johndoe"`,
 		},
-
 		{
 			name: "unauthorized - no token",
 			setupDB: func(t *testing.T) *gorm.DB {
 				return fixtures.NewFixture(t, &fixtures.UserCommonTestDB{})
 			},
 			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				//ko truyen header vao
 				req := httptest.NewRequest(http.MethodGet, "/v1/self/info", nil)
 				rec := httptest.NewRecorder()
 				api.ServerHTTP(rec, req)
@@ -317,13 +293,7 @@ func TestGetSelfInfoEndpoint(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
-			testAPI := api.NewEngine(&api.EngineOpts{
-				App:    gin.New(),
-				Cfg:    &api.Config{},
-				Db:     db,
-				JWTGen: jwtGen,
-				JWTVal: jwtVal,
-			})
+			testAPI := buildTestAPI(db, jwtGen, jwtVal)
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
 			assert.Contains(t, recorder.Body.String(), tc.expectedResponse)
@@ -333,10 +303,7 @@ func TestGetSelfInfoEndpoint(t *testing.T) {
 
 func TestUpdateSelfInfoEndpoint(t *testing.T) {
 	t.Parallel()
-	jwtGen, err := jwtutils.NewJWTGenerator("../../pkg/jwtutils/test.private.key")
-	assert.NoError(t, err)
-	jwtVal, err := jwtutils.NewJWTValidator("../../pkg/jwtutils/test.public.key")
-	assert.NoError(t, err)
+	jwtGen, jwtVal := setupTestJWT(t)
 
 	testCases := []struct {
 		name               string
@@ -352,13 +319,7 @@ func TestUpdateSelfInfoEndpoint(t *testing.T) {
 				return fixtures.NewFixture(t, &fixtures.UserCommonTestDB{})
 			},
 			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				tokenContent := jwt.MapClaims{
-					"sub":   "deb745af-1a62-4efa-99a0-f06b274bd990",
-					"email": "johndoe@example.com",
-					"iat":   time.Now().Unix(),
-					"exp":   time.Now().Add(24 * time.Hour).Unix(),
-				}
-				token, _ := jwtGen.GenerateJWT(tokenContent)
+				token := generateTestToken(t, jwtGen, "deb745af-1a62-4efa-99a0-f06b274bd990", "johndoe@example.com")
 
 				body := bytes.NewBufferString(`{"display_name":"John New Name","email":"john_new@example.com"}`)
 				req := httptest.NewRequest(http.MethodPut, "/v1/self/info", body)
@@ -379,20 +340,13 @@ func TestUpdateSelfInfoEndpoint(t *testing.T) {
 				assert.Equal(t, "john_new@example.com", user.Email)
 			},
 		},
-
 		{
 			name: "duplicate email",
 			setupDB: func(t *testing.T) *gorm.DB {
 				return fixtures.NewFixture(t, &fixtures.UserCommonTestDB{})
 			},
 			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				tokenContent := jwt.MapClaims{
-					"sub":   "deb745af-1a62-4efa-99a0-f06b274bd990",
-					"email": "johndoe@example.com",
-					"iat":   time.Now().Unix(),
-					"exp":   time.Now().Add(24 * time.Hour).Unix(),
-				}
-				token, _ := jwtGen.GenerateJWT(tokenContent)
+				token := generateTestToken(t, jwtGen, "deb745af-1a62-4efa-99a0-f06b274bd990", "johndoe@example.com")
 
 				body := bytes.NewBufferString(`{"display_name":"John New Name","email":"janedoe@example.com"}`)
 				req := httptest.NewRequest(http.MethodPut, "/v1/self/info", body)
@@ -417,13 +371,7 @@ func TestUpdateSelfInfoEndpoint(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
 
-			testAPI := api.NewEngine(&api.EngineOpts{
-				App:    gin.New(),
-				Cfg:    &api.Config{},
-				Db:     db,
-				JWTGen: jwtGen,
-				JWTVal: jwtVal,
-			})
+			testAPI := buildTestAPI(db, jwtGen, jwtVal)
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
@@ -431,4 +379,37 @@ func TestUpdateSelfInfoEndpoint(t *testing.T) {
 			tc.verifyFunc(t, db)
 		})
 	}
+}
+
+// setupTestJWT loads the test RSA keys from pkg/jwtutils
+func setupTestJWT(t *testing.T) (jwtutils.JWTGenerator, jwtutils.JWTValidator) {
+	jwtGen, err := jwtutils.NewJWTGenerator("../../pkg/jwtutils/test.private.key")
+	assert.NoError(t, err)
+	jwtVal, err := jwtutils.NewJWTValidator("../../pkg/jwtutils/test.public.key")
+	assert.NoError(t, err)
+	return jwtGen, jwtVal
+}
+
+// generateTestToken creates and signs a valid JWT token for test purposes
+func generateTestToken(t *testing.T, jwtGen jwtutils.JWTGenerator, sub, email string) string {
+	tokenContent := jwt.MapClaims{
+		"sub":   sub,
+		"email": email,
+		"iat":   time.Now().Unix(),
+		"exp":   time.Now().Add(24 * time.Hour).Unix(),
+	}
+	token, err := jwtGen.GenerateJWT(tokenContent)
+	assert.NoError(t, err)
+	return token
+}
+
+// buildTestAPI instantiates the Gin engine with mocking dependencies
+func buildTestAPI(db *gorm.DB, jwtGen jwtutils.JWTGenerator, jwtVal jwtutils.JWTValidator) api.Engine {
+	return api.NewEngine(&api.EngineOpts{
+		App:    gin.New(),
+		Cfg:    &api.Config{},
+		Db:     db,
+		JWTGen: jwtGen,
+		JWTVal: jwtVal,
+	})
 }

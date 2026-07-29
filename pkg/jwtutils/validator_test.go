@@ -18,7 +18,7 @@ func TestNewJWTValidation(t *testing.T) {
 	}{
 		{
 			name:           "happy path",
-			keyPath:        filepath.FromSlash("./test.public.key"),
+			keyPath:        filepath.FromSlash(publicKeyPath),
 			expectedErrStr: "",
 		},
 
@@ -30,7 +30,7 @@ func TestNewJWTValidation(t *testing.T) {
 
 		{
 			name:           "err case - not a public key",
-			keyPath:        filepath.FromSlash("./test.private.key"),
+			keyPath:        filepath.FromSlash(privateKeyPath),
 			expectedErrStr: "structure error",
 		},
 	}
@@ -47,13 +47,12 @@ func TestNewJWTValidation(t *testing.T) {
 }
 
 func TestValidator_ValidateJWT(t *testing.T) {
-	testToken := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0MTIzIn0.LXoNKqv4WoBu2JH0ELzfu_leagME-CWZ_MZ-rNnl-zzka4gnrRYDukXVE3LbElHbvTqtZdxp3TRo3YbFjiQR0QkbmbcL63y1dVwTuNOpUf04mMN3HMe2AZyfRUakfz4-7xzx0swi5GskT3axSuis42dQzdg7isl7OttKAg20_ti-dZ23VX6m5M0uOUgG6MHbG7qNtbztpRZ3Xl0dtQI-zYPGZpXqS079ydjSQzKOdyVcZq4U8yFdp1Imf5PXe3hVOYnA6Xdo3kp9ZlMKhiOKERo9QwAn5aOR0BzRBFzR7jBxNEgE6cQ6NN7QVY_L7KuxqZQRHqmbTybDY2ziEeHhVA"
-
-	val, err := NewJWTValidator(filepath.FromSlash("./test.public.key"))
+	val, err := NewJWTValidator(filepath.FromSlash(publicKeyPath))
 	if err != nil {
 		t.Fatal("should not fail")
 	}
-	claims, err := val.ValidateJWT(testToken)
+	// Reused the sharedTestToken defined in generator_test.go to avoid duplication
+	claims, err := val.ValidateJWT(sharedTestToken)
 	if err != nil {
 		t.Fatal("should not fail")
 	}
