@@ -35,6 +35,28 @@ definitions:
       username:
         type: string
     type: object
+  user.getSelfInfoResponse:
+    properties:
+      data:
+        $ref: '#/definitions/model.User'
+    type: object
+  user.loginInputBody:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  user.loginResponse:
+    properties:
+      data:
+        type: string
+      message:
+        type: string
+    type: object
   user.registerInputBody:
     properties:
       display_name:
@@ -55,6 +77,20 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/model.User'
+      message:
+        type: string
+    type: object
+  user.updateSelfInfoBody:
+    properties:
+      display_name:
+        type: string
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  user.updateSelfInfoResponse:
+    properties:
       message:
         type: string
     type: object
@@ -135,6 +171,68 @@ paths:
             type: object
       tags:
       - link
+  /v1/self/info:
+    get:
+      consumes:
+      - application/json
+      description: get your current information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/user.getSelfInfoResponse'
+      security:
+      - BearerAuth: []
+      summary: get your current information
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: edit your current information
+      parameters:
+      - description: Input required
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/user.updateSelfInfoBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/user.updateSelfInfoResponse'
+      security:
+      - BearerAuth: []
+      summary: edit your current information
+      tags:
+      - user
+  /v1/users/login:
+    post:
+      consumes:
+      - application/json
+      description: Return a jwt token if the input is correct
+      parameters:
+      - description: Input required
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/user.loginInputBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/user.loginResponse'
+      summary: Return a jwt token if the input is correct
+      tags:
+      - user
   /v1/users/register:
     post:
       consumes:
@@ -156,5 +254,10 @@ paths:
             $ref: '#/definitions/user.registerResponse'
       summary: Register a new user
       tags:
-      - User
+      - user
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

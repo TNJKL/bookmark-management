@@ -12,6 +12,9 @@ import (
 // Handler defines the contract for handling HTTP requests related to users
 type Handler interface {
 	Register(ctx *gin.Context)
+	Login(ctx *gin.Context)
+	GetSelfInfo(ctx *gin.Context)
+	UpdateSelfInfo(ctx *gin.Context)
 }
 
 // userHandler implements the Handler interface and communicates with the user Service

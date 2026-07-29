@@ -6,6 +6,7 @@ import (
 
 	"github.com/TNJKL/bookmark-management/internal/repository/urlstorage"
 	"github.com/TNJKL/bookmark-management/internal/service"
+	"github.com/TNJKL/bookmark-management/pkg/requestutils"
 	"github.com/TNJKL/bookmark-management/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -49,9 +50,8 @@ func (s *shortenURL) ShortenLink(ctx *gin.Context) {
 	//read input
 	// Dùng ctx để bind request vào input (struct shortenInputBody)
 	// Và struct đó sẽ parse dữ liệu đúng như vậy
-	input := &shortenInputBody{}
-	if err := ctx.ShouldBindJSON(input); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.InputFieldError(err))
+	input, err := requestutils.BindInputFromRequest[shortenInputBody](ctx)
+	if err != nil {
 		return
 	}
 

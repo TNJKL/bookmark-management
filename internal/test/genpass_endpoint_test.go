@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/TNJKL/bookmark-management/internal/api"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,7 +53,10 @@ func TestGenPassEndpoint(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			testAPI := api.NewEngine(&api.Config{}, nil, nil)
+			testAPI := api.NewEngine(&api.EngineOpts{
+				App: gin.New(),
+				Cfg: &api.Config{},
+			})
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)

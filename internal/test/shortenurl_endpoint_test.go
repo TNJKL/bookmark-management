@@ -9,6 +9,7 @@ import (
 
 	"github.com/TNJKL/bookmark-management/internal/api"
 	redisPkg "github.com/TNJKL/bookmark-management/pkg/redis"
+	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
@@ -93,7 +94,11 @@ func TestShortenURLEndpoint(t *testing.T) {
 			t.Parallel()
 			ctx := context.Background()
 			mockRedis := tc.setupRedis(ctx)
-			testAPI := api.NewEngine(&api.Config{ServiceName: "test_service", InstanceID: "test_instance"}, mockRedis, nil)
+			testAPI := api.NewEngine(&api.EngineOpts{
+				App:         gin.New(),
+				Cfg:         &api.Config{},
+				RedisClient: mockRedis,
+			})
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
 			assert.Contains(t, recorder.Body.String(), tc.expectedResponseBody)
@@ -169,7 +174,11 @@ func TestRedirectEnpoint(t *testing.T) {
 			t.Parallel()
 			ctx := t.Context()
 			mockRedis := tc.setupRedis(ctx)
-			testAPI := api.NewEngine(&api.Config{}, mockRedis, nil)
+			testAPI := api.NewEngine(&api.EngineOpts{
+				App:         gin.New(),
+				Cfg:         &api.Config{},
+				RedisClient: mockRedis,
+			})
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
 			assert.Equal(t, tc.expectedURL, recorder.Header().Get("Location"))
