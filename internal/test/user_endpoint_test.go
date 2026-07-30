@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/TNJKL/bookmark-management/internal/api"
-	"github.com/TNJKL/bookmark-management/internal/model"
+	"github.com/TNJKL/bookmark-management/internal/app/model"
 	"github.com/TNJKL/bookmark-management/internal/test/data/fixtures"
 	"github.com/TNJKL/bookmark-management/pkg/jwtutils"
 	"github.com/TNJKL/bookmark-management/pkg/utils"

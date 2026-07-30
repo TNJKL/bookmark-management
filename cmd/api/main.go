@@ -1,18 +1,9 @@
 package main
 
 import (
-	"github.com/TNJKL/bookmark-management/internal/api"
-	"github.com/TNJKL/bookmark-management/internal/model"
-	"github.com/TNJKL/bookmark-management/pkg/jwtutils"
-	"github.com/TNJKL/bookmark-management/pkg/logger"
-	redisPkg "github.com/TNJKL/bookmark-management/pkg/redis"
-	"github.com/TNJKL/bookmark-management/pkg/sqldb"
-	"github.com/gin-gonic/gin"
-)
+	"log"
 
-const (
-	privateKeyPath = "./private.pem"
-	publicKeyPath  = "./public.pem"
+	"github.com/TNJKL/bookmark-management/internal/infrastructure"
 )
 
 // @title       Bookmark Management API
@@ -23,53 +14,11 @@ const (
 // @in header
 // @name Authorization
 func main() {
-	//create app config
-	cfg, err := api.NewConfig()
-	if err != nil {
-		panic(err)
-	}
+	//Init api
+	a := infrastructure.CreateAPI()
 
-	//set log level
-	logger.SetLogLevel(cfg.LogLevel)
-
-	//init DB
-	db, err := sqldb.NewClient("")
-	if err != nil {
-		panic(err)
-	}
-	//auto migrate
-	err = db.AutoMigrate(&model.User{})
-	if err != nil {
-		panic(err)
-	}
-	//create redis client
-	redisClient, err := redisPkg.NewClient("")
-	if err != nil {
-		panic(err)
-	}
-
-	//create jwtGen
-	jwtGen, err := jwtutils.NewJWTGenerator(privateKeyPath)
-	if err != nil {
-		panic(err)
-	}
-
-	//create jwtVal
-	jwtVal, err := jwtutils.NewJWTValidator(publicKeyPath)
-	if err != nil {
-		panic(err)
-	}
-
-	app := api.NewEngine(&api.EngineOpts{
-		App:         gin.New(),
-		Cfg:         cfg,
-		RedisClient: redisClient,
-		Db:          db,
-		JWTGen:      jwtGen,
-		JWTVal:      jwtVal,
-	}) //Buoc 1 : khoi tao Engine (Khoi tao moi thu)
-	err = app.Start() //Buoc 2 :Chay server
-	if err != nil {
-		panic(err)
+	//Start api app
+	if err := a.Start(); err != nil {
+		log.Fatalf("Failed to start API server: %v", err)
 	}
 }

@@ -7,13 +7,17 @@ import (
 	"github.com/TNJKL/bookmark-management/docs"
 	_ "github.com/TNJKL/bookmark-management/docs" // Load tài liệu Swagger đã generate
 	"github.com/TNJKL/bookmark-management/internal/api/middleware"
-	"github.com/TNJKL/bookmark-management/internal/handler"
-	userHandler "github.com/TNJKL/bookmark-management/internal/handler/user"
-	"github.com/TNJKL/bookmark-management/internal/repository/ping"
-	"github.com/TNJKL/bookmark-management/internal/repository/urlstorage"
-	"github.com/TNJKL/bookmark-management/internal/repository/user"
-	"github.com/TNJKL/bookmark-management/internal/service"
-	userSvc "github.com/TNJKL/bookmark-management/internal/service/user"
+	genpassHandler "github.com/TNJKL/bookmark-management/internal/app/handler/genpass"
+	"github.com/TNJKL/bookmark-management/internal/app/handler/healthcheck"
+	"github.com/TNJKL/bookmark-management/internal/app/handler/link"
+	userHandler "github.com/TNJKL/bookmark-management/internal/app/handler/user"
+	"github.com/TNJKL/bookmark-management/internal/app/repository/ping"
+	"github.com/TNJKL/bookmark-management/internal/app/repository/urlstorage"
+	"github.com/TNJKL/bookmark-management/internal/app/repository/user"
+	"github.com/TNJKL/bookmark-management/internal/app/service/genpass"
+	healthcheck2 "github.com/TNJKL/bookmark-management/internal/app/service/healthcheck"
+	service2 "github.com/TNJKL/bookmark-management/internal/app/service/link"
+	userSvc "github.com/TNJKL/bookmark-management/internal/app/service/user"
 	"github.com/TNJKL/bookmark-management/pkg/jwtutils"
 	"github.com/TNJKL/bookmark-management/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -80,20 +84,20 @@ func (e *engine) ServerHTTP(w http.ResponseWriter, req *http.Request) {
 // handlers aggregates all HTTP handler dependencies used to register
 // the application's routes.
 type handlers struct {
-	genPassHandler     handler.GenPass
-	healthCheckHandler handler.HealthCheck
-	urlStorageHandler  handler.ShortenURL
+	genPassHandler     genpassHandler.GenPass
+	healthCheckHandler healthcheck.HealthCheck
+	urlStorageHandler  link.ShortenURL
 	userHandler        userHandler.Handler
 }
 
 // initHandlers initializes the api handlers
 func (e *engine) initHandlers() *handlers {
-	genPassSvc := service.NewGenPass()
+	genPassSvc := genpass.NewGenPass()
 	keyGen := utils.NewKeyGenerator()
 	pingRepo := ping.NewHealthRepository(e.redisClient)
-	healthCheckSvc := service.NewHealthCheck(e.cfg.ServiceName, e.cfg.InstanceID, pingRepo)
+	healthCheckSvc := healthcheck2.NewHealthCheck(e.cfg.ServiceName, e.cfg.InstanceID, pingRepo)
 	urlStorage := urlstorage.NewURLStorage(e.redisClient)
-	shortenUrlSvc := service.NewShortenUrl(urlStorage, keyGen)
+	shortenUrlSvc := service2.NewShortenUrl(urlStorage, keyGen)
 
 	//user
 	userRepo := user.NewSQLRepository(e.db)
@@ -101,9 +105,9 @@ func (e *engine) initHandlers() *handlers {
 	userSvc := userSvc.NewService(userRepo, hasher, e.jwtGen)
 
 	return &handlers{
-		genPassHandler:     handler.NewGenPass(genPassSvc),
-		healthCheckHandler: handler.NewHealthCheck(healthCheckSvc),
-		urlStorageHandler:  handler.NewShortenURL(shortenUrlSvc),
+		genPassHandler:     genpassHandler.NewGenPass(genPassSvc),
+		healthCheckHandler: healthcheck.NewHealthCheck(healthCheckSvc),
+		urlStorageHandler:  link.NewShortenURL(shortenUrlSvc),
 		userHandler:        userHandler.NewHandler(userSvc),
 	}
 }
