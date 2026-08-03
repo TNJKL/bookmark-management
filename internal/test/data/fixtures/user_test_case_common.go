@@ -1,7 +1,7 @@
 package fixtures
 
 import (
-	"github.com/TNJKL/bookmark-management/internal/model"
+	"github.com/TNJKL/bookmark-management/internal/app/model"
 	"gorm.io/gorm"
 )
 
