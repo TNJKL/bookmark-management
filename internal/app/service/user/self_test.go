@@ -19,11 +19,11 @@ func TestService_GetSelfInfo(t *testing.T) {
 	//errTest := errors.New("test error")
 
 	testUser := &model.User{
-		ID:          inputID,
 		Username:    "testuser",
 		Email:       "test@example.com",
 		DisplayName: "Test User",
 	}
+	testUser.ID = inputID
 
 	testCases := []struct {
 		name          string
@@ -91,11 +91,11 @@ func TestService_UpdateSelfInfo(t *testing.T) {
 	//errTest := errors.New("test error")
 
 	testUser := &model.User{
-		ID:          inputUID,
 		Username:    "testuser",
 		Email:       "old@example.com",
 		DisplayName: "Old Name",
 	}
+	testUser.ID = inputUID
 
 	testCases := []struct {
 		name          string

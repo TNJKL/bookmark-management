@@ -7,16 +7,19 @@ import (
 	"github.com/TNJKL/bookmark-management/docs"
 	_ "github.com/TNJKL/bookmark-management/docs" // Load tài liệu Swagger đã generate
 	"github.com/TNJKL/bookmark-management/internal/api/middleware"
+	"github.com/TNJKL/bookmark-management/internal/app/handler/bookmark"
 	genpassHandler "github.com/TNJKL/bookmark-management/internal/app/handler/genpass"
 	"github.com/TNJKL/bookmark-management/internal/app/handler/healthcheck"
 	"github.com/TNJKL/bookmark-management/internal/app/handler/link"
 	userHandler "github.com/TNJKL/bookmark-management/internal/app/handler/user"
+	bookmarkRepo "github.com/TNJKL/bookmark-management/internal/app/repository/bookmark"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/ping"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/urlstorage"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/user"
+	bookmarkSvc "github.com/TNJKL/bookmark-management/internal/app/service/bookmark"
 	"github.com/TNJKL/bookmark-management/internal/app/service/genpass"
 	healthcheck2 "github.com/TNJKL/bookmark-management/internal/app/service/healthcheck"
-	service2 "github.com/TNJKL/bookmark-management/internal/app/service/link"
+	linkSvc "github.com/TNJKL/bookmark-management/internal/app/service/link"
 	userSvc "github.com/TNJKL/bookmark-management/internal/app/service/user"
 	"github.com/TNJKL/bookmark-management/pkg/jwtutils"
 	"github.com/TNJKL/bookmark-management/pkg/utils"
@@ -88,6 +91,7 @@ type handlers struct {
 	healthCheckHandler healthcheck.HealthCheck
 	urlStorageHandler  link.ShortenURL
 	userHandler        userHandler.Handler
+	bookmarkHandler    bookmark.Handler
 }
 
 // initHandlers initializes the api handlers
@@ -97,18 +101,23 @@ func (e *engine) initHandlers() *handlers {
 	pingRepo := ping.NewHealthRepository(e.redisClient)
 	healthCheckSvc := healthcheck2.NewHealthCheck(e.cfg.ServiceName, e.cfg.InstanceID, pingRepo)
 	urlStorage := urlstorage.NewURLStorage(e.redisClient)
-	shortenUrlSvc := service2.NewShortenUrl(urlStorage, keyGen)
+	shortenUrlSvc := linkSvc.NewShortenUrl(urlStorage, keyGen)
 
-	//user
+	//init user handler
 	userRepo := user.NewSQLRepository(e.db)
 	hasher := utils.NewHasher()
-	userSvc := userSvc.NewService(userRepo, hasher, e.jwtGen)
+	userService := userSvc.NewService(userRepo, hasher, e.jwtGen)
+
+	//init bookmark handler
+	bookmarkRepository := bookmarkRepo.NewRepository(e.db)
+	bookmarkService := bookmarkSvc.NewService(bookmarkRepository, keyGen)
 
 	return &handlers{
 		genPassHandler:     genpassHandler.NewGenPass(genPassSvc),
 		healthCheckHandler: healthcheck.NewHealthCheck(healthCheckSvc),
 		urlStorageHandler:  link.NewShortenURL(shortenUrlSvc),
-		userHandler:        userHandler.NewHandler(userSvc),
+		userHandler:        userHandler.NewHandler(userService),
+		bookmarkHandler:    bookmark.NewHandler(bookmarkService),
 	}
 }
 
@@ -139,9 +148,24 @@ func (e *engine) initRoutes() {
 		v1Routes.POST("/users/register", allHandler.userHandler.Register)
 		v1Routes.POST("/users/login", allHandler.userHandler.Login)
 
-		v1Routes.Use(jwtAuth.JWTAuth())
-		v1Routes.GET("self/info", allHandler.userHandler.GetSelfInfo)
-		v1Routes.PUT("self/info", allHandler.userHandler.UpdateSelfInfo)
 	}
+	//private routes (need Auth)
+	privateRoutes := e.app.Group("")
+	privateRoutes.Use(jwtAuth.JWTAuth())
+	{
+		privateV1Routes := privateRoutes.Group("/v1")
+		{
+			//self endpoints
+			privateV1Routes.GET("self/info", allHandler.userHandler.GetSelfInfo)
+			privateV1Routes.PUT("self/info", allHandler.userHandler.UpdateSelfInfo)
 
+			//bookmark endpoints
+			privateV1Routes.POST("/bookmarks", allHandler.bookmarkHandler.CreateBookmark)
+			privateV1Routes.GET("/bookmarks", allHandler.bookmarkHandler.GetBookmarks)
+			privateV1Routes.PUT("/bookmarks/:id", allHandler.bookmarkHandler.UpdateBookmark)
+			privateV1Routes.DELETE("/bookmarks/:id", allHandler.bookmarkHandler.DeleteBookmark)
+
+		}
+
+	}
 }

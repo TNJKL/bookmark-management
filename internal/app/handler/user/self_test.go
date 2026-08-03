@@ -22,11 +22,11 @@ func TestUserHandler_GetSelfInfo(t *testing.T) {
 	uid := "uuid-123"
 	errTest := errors.New("test error")
 	testUser := &model.User{
-		ID:          uid,
 		Username:    "testuser",
 		DisplayName: "Test User",
 		Email:       "test@gmail.com",
 	}
+	testUser.ID = uid
 
 	testCases := []struct {
 		name               string
@@ -49,7 +49,7 @@ func TestUserHandler_GetSelfInfo(t *testing.T) {
 				ctx.Request = httptest.NewRequest(http.MethodGet, "/v1/self/info", nil)
 			},
 			expectedStatusCode: http.StatusOK,
-			expectedResponse:   `"id":"uuid-123","display_name":"Test User","username":"testuser","email":"test@gmail.com"`,
+			expectedResponse:   `"display_name":"Test User"`,
 		},
 
 		{

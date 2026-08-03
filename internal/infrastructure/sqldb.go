@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	"github.com/TNJKL/bookmark-management/internal/app/model"
 	"github.com/TNJKL/bookmark-management/pkg/sqldb"
 	"github.com/TNJKL/bookmark-management/pkg/utils"
 	"gorm.io/gorm"
@@ -19,6 +18,8 @@ func CreateSQLDBWithMigration() *gorm.DB {
 	return sqlDB
 }
 
+const migrationPath = "file://./migrations"
+
 // MigrateDB will migrate the database according to the User struct.
 // It will create the table if it doesn't exist and update the schema if it's outdated.
-func MigrateDB(db *gorm.DB) error { return db.AutoMigrate(&model.User{}) }
+func MigrateDB(dbClient *gorm.DB) error { return sqldb.MigrateSQLDB(dbClient, migrationPath, "up", 0) }

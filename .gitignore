@@ -7,3 +7,4 @@ bookmark-service
 .env
 private.pem
 public.pem
+.postgres_data
