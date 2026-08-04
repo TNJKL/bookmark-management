@@ -1,6 +1,32 @@
 basePath: /
 definitions:
-  handler.shortenInputBody:
+  bookmark.createBookmarkInput:
+    properties:
+      description:
+        example: A bookmark description
+        maxLength: 255
+        type: string
+      url:
+        example: http://google.com
+        maxLength: 2048
+        type: string
+    required:
+    - url
+    type: object
+  bookmark.updateBookmarkBody:
+    properties:
+      description:
+        example: Google
+        maxLength: 255
+        type: string
+      url:
+        example: https://www.google.com
+        maxLength: 2048
+        type: string
+    required:
+    - url
+    type: object
+  link.shortenInputBody:
     properties:
       exp:
         minimum: 300
@@ -10,6 +36,23 @@ definitions:
     required:
     - exp
     - url
+    type: object
+  model.Bookmark:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      url:
+        type: string
+      user_id:
+        type: string
     type: object
   model.HealthCheckResponse:
     properties:
@@ -33,6 +76,12 @@ definitions:
       updated_at:
         type: string
       username:
+        type: string
+    type: object
+  response.Message:
+    properties:
+      details: {}
+      message:
         type: string
     type: object
   user.getSelfInfoResponse:
@@ -131,6 +180,122 @@ paths:
       summary: System health-check
       tags:
       - health-check
+  /v1/bookmarks:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of bookmarks of the current user
+      parameters:
+      - default: 1
+        description: page
+        format: int32
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: limit
+        format: int32
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            properties:
+              data:
+                items:
+                  $ref: '#/definitions/model.Bookmark'
+                type: array
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a list of bookmarks of the current user
+      tags:
+      - bookmark
+    post:
+      consumes:
+      - application/json
+      description: Create a new bookmark for a bookmark group
+      parameters:
+      - description: Input required
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/bookmark.createBookmarkInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/model.Bookmark'
+              message:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new bookmark for a bookmark group
+      tags:
+      - bookmark
+  /v1/bookmarks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a bookmark of the current user
+      parameters:
+      - description: Bookmark ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Message'
+      security:
+      - BearerAuth: []
+      summary: Delete a bookmark of the current user
+      tags:
+      - bookmark
+    put:
+      consumes:
+      - application/json
+      description: Update an existing bookmark of the current user
+      parameters:
+      - description: Bookmark ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Input required
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/bookmark.updateBookmarkBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Message'
+      security:
+      - BearerAuth: []
+      summary: Update an existing bookmark of the current user
+      tags:
+      - bookmark
   /v1/links/redirect/{code}:
     get:
       consumes:
@@ -159,7 +324,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/handler.shortenInputBody'
+          $ref: '#/definitions/link.shortenInputBody'
       produces:
       - application/json
       responses:

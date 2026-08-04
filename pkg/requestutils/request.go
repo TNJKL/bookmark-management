@@ -46,5 +46,20 @@ func BindInputFromRequest[T any](c *gin.Context) (*T, error) {
 		return nil, err
 	}
 	return reqInput, nil
+}
+
+// BindInputFromRequestWithAuth binds input from request
+func BindInputFromRequestWithAuth[T any](ctx *gin.Context) (*T, string, error) {
+	uid, err := GetUserIDFromRequest(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	input, err := BindInputFromRequest[T](ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return input, uid, nil
 
 }

@@ -23,7 +23,9 @@ func TestUserHandler_Register(t *testing.T) {
 	email := "test@gmail.com"
 
 	createdUser := &model.User{
-		ID:          "deb745af-1a62-4efa-99a0-f06b274bd990",
+		Base: model.Base{
+			ID: "deb745af-1a62-4efa-99a0-f06b274bd990",
+		},
 		Username:    username,
 		DisplayName: displayName,
 		Email:       email,

@@ -26,10 +26,11 @@ func TestSqlRepository_UpdateUser(t *testing.T) {
 				return fixtures.NewFixture(t, &fixtures.UserCommonTestDB{})
 			},
 			inputUser: &model.User{
-				ID:          "deb745af-1a62-4efa-99a0-f06b274bd990",
+				Base:        fixtures.GetTestBase("deb745af-1a62-4efa-99a0-f06b274bd990"),
 				DisplayName: "John New Name",
 				Email:       "john_new@example.com",
 			},
+
 			expectedErr: nil,
 			verifyFunc: func(t *testing.T, db *gorm.DB) {
 				user := &model.User{}
@@ -45,7 +46,7 @@ func TestSqlRepository_UpdateUser(t *testing.T) {
 				return fixtures.NewFixture(t, &fixtures.UserCommonTestDB{})
 			},
 			inputUser: &model.User{
-				ID:          "deb745af-1a62-4efa-99a0-f06b274bd990",
+				Base:        fixtures.GetTestBase("deb745af-1a62-4efa-99a0-f06b274bd990"),
 				DisplayName: "John New Name",
 				Email:       "janedoe@example.com",
 			},

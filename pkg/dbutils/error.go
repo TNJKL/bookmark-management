@@ -10,6 +10,7 @@ var errorFilters = []func(err error) (bool, error){
 	filterDuplicationUsername,
 	filterDuplicationEmail,
 	filterRecordNotFound,
+	filterUniqueConstraint,
 }
 
 // Common database errors returned by the repository layer.
@@ -17,6 +18,7 @@ var (
 	ErrDuplicationUsername = errors.New("username already exists")
 	ErrDuplicationEmail    = errors.New("email already exists")
 	ErrRecordNotFound      = errors.New("record not found")
+	ErrUniqueConstraint    = errors.New("unique constraint violation")
 )
 
 // CatchDBError inspects the raw database error and maps it to a clean application error if a match is found
@@ -50,4 +52,13 @@ func filterDuplicationEmail(err error) (bool, error) {
 // filterRecordNotFound checks if the error is caused by a missing database record
 func filterRecordNotFound(err error) (bool, error) {
 	return strings.Contains(strings.ToLower(err.Error()), "record not found"), ErrRecordNotFound
+}
+
+// filterUniqueConstraint checks if the error is caused by a generic unique constraint violation
+func filterUniqueConstraint(err error) (bool, error) {
+	errStr := strings.ToLower(err.Error())
+	if strings.Contains(errStr, "duplicate key") || strings.Contains(errStr, "unique constraint") {
+		return true, ErrUniqueConstraint
+	}
+	return false, nil
 }

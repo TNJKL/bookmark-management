@@ -62,11 +62,7 @@ func (h *userHandler) GetSelfInfo(ctx *gin.Context) {
 // @Success      200 {object} updateSelfInfoResponse "Success"
 // @Router       /v1/self/info [put]
 func (h *userHandler) UpdateSelfInfo(ctx *gin.Context) {
-	uid, err := requestutils.GetUserIDFromRequest(ctx)
-	if err != nil {
-		return
-	}
-	input, err := requestutils.BindInputFromRequest[updateSelfInfoBody](ctx)
+	input, uid, err := requestutils.BindInputFromRequestWithAuth[updateSelfInfoBody](ctx)
 	if err != nil {
 		return
 	}

@@ -13,5 +13,5 @@ func (r *sqlRepository) CreateUser(ctx context.Context, newUser *model.User) (*m
 	if err != nil {
 		return nil, dbutils.CatchDBError(err)
 	}
-	return newUser, err
+	return newUser, nil
 }

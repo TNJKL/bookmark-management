@@ -21,19 +21,21 @@ func (u *UserCommonTestDB) GenerateData() error {
 
 	users := []*model.User{
 		{
-			ID:          "deb745af-1a62-4efa-99a0-f06b274bd990",
+			Base:        GetTestBase("deb745af-1a62-4efa-99a0-f06b274bd990"),
 			DisplayName: "John Doe",
 			Username:    "johndoe",
 			Password:    "Kakarot1996@",
 			Email:       "johndoe@example.com",
 		},
 		{
-			ID:          "deb745af-1a62-4efa-99a0-f06b274bd991",
+			Base:        GetTestBase("deb745af-1a62-4efa-99a0-f06b274bd991"),
 			DisplayName: "Jane Doe",
 			Username:    "janedoe",
 			Password:    "Kakarot1996@",
 			Email:       "janedoe@example.com",
 		},
 	}
-	return db.CreateInBatches(users, 10).Error
+	err := db.CreateInBatches(users, 10).Error
+
+	return err
 }

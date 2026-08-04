@@ -6,15 +6,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/TNJKL/bookmark-management/internal/api"
 	"github.com/TNJKL/bookmark-management/internal/app/model"
 	"github.com/TNJKL/bookmark-management/internal/test/data/fixtures"
-	"github.com/TNJKL/bookmark-management/pkg/jwtutils"
 	"github.com/TNJKL/bookmark-management/pkg/utils"
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -379,37 +375,4 @@ func TestUpdateSelfInfoEndpoint(t *testing.T) {
 			tc.verifyFunc(t, db)
 		})
 	}
-}
-
-// setupTestJWT loads the test RSA keys from pkg/jwtutils
-func setupTestJWT(t *testing.T) (jwtutils.JWTGenerator, jwtutils.JWTValidator) {
-	jwtGen, err := jwtutils.NewJWTGenerator("../../pkg/jwtutils/test.private.key")
-	assert.NoError(t, err)
-	jwtVal, err := jwtutils.NewJWTValidator("../../pkg/jwtutils/test.public.key")
-	assert.NoError(t, err)
-	return jwtGen, jwtVal
-}
-
-// generateTestToken creates and signs a valid JWT token for test purposes
-func generateTestToken(t *testing.T, jwtGen jwtutils.JWTGenerator, sub, email string) string {
-	tokenContent := jwt.MapClaims{
-		"sub":   sub,
-		"email": email,
-		"iat":   time.Now().Unix(),
-		"exp":   time.Now().Add(24 * time.Hour).Unix(),
-	}
-	token, err := jwtGen.GenerateJWT(tokenContent)
-	assert.NoError(t, err)
-	return token
-}
-
-// buildTestAPI instantiates the Gin engine with mocking dependencies
-func buildTestAPI(db *gorm.DB, jwtGen jwtutils.JWTGenerator, jwtVal jwtutils.JWTValidator) api.Engine {
-	return api.NewEngine(&api.EngineOpts{
-		App:    gin.New(),
-		Cfg:    &api.Config{},
-		Db:     db,
-		JWTGen: jwtGen,
-		JWTVal: jwtVal,
-	})
 }

@@ -25,13 +25,12 @@ func TestService_Login(t *testing.T) {
 	errTest := errors.New("test error")
 
 	testUser := &model.User{
-		ID:          "uuid-123",
 		Username:    inputUsername,
 		Password:    hashedPassword,
 		Email:       "test@example.com",
 		DisplayName: "Test User",
 	}
-
+	testUser.ID = "uuid-123"
 	testCases := []struct {
 		name            string
 		setupMockRepo   func(ctx context.Context) *repoMocks.Repository
