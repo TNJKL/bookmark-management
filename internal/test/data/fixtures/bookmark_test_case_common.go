@@ -5,6 +5,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var userID = "deb745af-1a62-4efa-99a0-f06b274bd990"
+
 // BookmarkCommonTestDB provides test database fixtures with seeded user and bookmark records
 type BookmarkCommonTestDB struct {
 	UserCommonTestDB
@@ -27,35 +29,35 @@ func (b *BookmarkCommonTestDB) GenerateData() error {
 			Description: "bookmark1",
 			URL:         "https://google.com",
 			Code:        "123456",
-			UserID:      "deb745af-1a62-4efa-99a0-f06b274bd990",
+			UserID:      userID,
 		},
 		{
 			Base:        GetTestBase("deb745af-1a62-4efa-99a0-f06b274bd992"),
 			Description: "bookmark2",
 			URL:         "https://google.com",
 			Code:        "123457",
-			UserID:      "deb745af-1a62-4efa-99a0-f06b274bd990",
+			UserID:      userID,
 		},
 		{
 			Base:        GetTestBase("deb745af-1a62-4efa-99a0-f06b274bd994"),
 			Description: "bookmark3",
 			URL:         "https://github.com",
 			Code:        "123458",
-			UserID:      "deb745af-1a62-4efa-99a0-f06b274bd990",
+			UserID:      userID,
 		},
 		{
 			Base:        GetTestBase("deb745af-1a62-4efa-99a0-f06b274bd995"),
 			Description: "bookmark4",
 			URL:         "https://youtube.com",
 			Code:        "123459",
-			UserID:      "deb745af-1a62-4efa-99a0-f06b274bd990",
+			UserID:      userID,
 		},
 		{
 			Base:        GetTestBase("deb745af-1a62-4efa-99a0-f06b274bd998"),
 			Description: "bookmark5",
 			URL:         "https://golang.org",
 			Code:        "123460",
-			UserID:      "deb745af-1a62-4efa-99a0-f06b274bd990",
+			UserID:      userID,
 		},
 	}
 	return b.db.Session(&gorm.Session{SkipHooks: true}).CreateInBatches(bookmarks, 10).Error
