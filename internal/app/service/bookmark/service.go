@@ -6,6 +6,7 @@ import (
 	"github.com/TNJKL/bookmark-management/internal/app/model"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/bookmark"
 	"github.com/TNJKL/bookmark-management/pkg/utils"
+	"gorm.io/gorm"
 )
 
 // Service defines business logic operations for managing bookmarks
@@ -21,13 +22,15 @@ type Service interface {
 // bookmarkService implements the Service interface
 type bookmarkService struct {
 	repo   bookmark.Repository
-	keyGen utils.KeyGenerator
+	base62 utils.Base62
+	db     *gorm.DB
 }
 
 // NewService creates a new instance of bookmarkService with provided repository and key generator
-func NewService(repo bookmark.Repository, keyGen utils.KeyGenerator) Service {
+func NewService(repo bookmark.Repository, base62 utils.Base62, db *gorm.DB) Service {
 	return &bookmarkService{
 		repo:   repo,
-		keyGen: keyGen,
+		base62: base62,
+		db:     db,
 	}
 }

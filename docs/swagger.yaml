@@ -51,8 +51,6 @@ definitions:
         type: string
       url:
         type: string
-      user_id:
-        type: string
     type: object
   model.HealthCheckResponse:
     properties:

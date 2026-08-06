@@ -154,7 +154,7 @@ func TestRegisterEndpoint(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
 
-			testAPI := buildTestAPI(db, nil, nil)
+			testAPI := buildTestAPI(db, nil, nil, nil)
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
@@ -235,7 +235,7 @@ func TestLoginEndpoint(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
 
-			testAPI := buildTestAPI(db, jwtGen, jwtVal)
+			testAPI := buildTestAPI(db, nil, jwtGen, jwtVal)
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
 			assert.Contains(t, recorder.Body.String(), tc.expectedResponse)
@@ -289,7 +289,7 @@ func TestGetSelfInfoEndpoint(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
-			testAPI := buildTestAPI(db, jwtGen, jwtVal)
+			testAPI := buildTestAPI(db, nil, jwtGen, jwtVal)
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
 			assert.Contains(t, recorder.Body.String(), tc.expectedResponse)
@@ -367,7 +367,7 @@ func TestUpdateSelfInfoEndpoint(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
 
-			testAPI := buildTestAPI(db, jwtGen, jwtVal)
+			testAPI := buildTestAPI(db, nil, jwtGen, jwtVal)
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)

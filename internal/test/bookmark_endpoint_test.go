@@ -163,7 +163,7 @@ func TestCreateBookmarkEndpoint(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
 
-			testAPI := buildTestAPI(db, jwtGen, jwtVal)
+			testAPI := buildTestAPI(db, nil, jwtGen, jwtVal)
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
@@ -282,7 +282,7 @@ func TestGetBookmarksEndpoint(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
 
-			testAPI := buildTestAPI(db, jwtGen, jwtVal)
+			testAPI := buildTestAPI(db, nil, jwtGen, jwtVal)
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
@@ -422,7 +422,7 @@ func TestUpdateBookmarkEndpoint(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
 
-			testAPI := buildTestAPI(db, jwtGen, jwtVal)
+			testAPI := buildTestAPI(db, nil, jwtGen, jwtVal)
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
@@ -513,7 +513,7 @@ func TestDeleteBookmarkEndpoint(t *testing.T) {
 			t.Parallel()
 			db := tc.setupDB(t)
 
-			testAPI := buildTestAPI(db, jwtGen, jwtVal)
+			testAPI := buildTestAPI(db, nil, jwtGen, jwtVal)
 			recorder := tc.setupTestHTTP(testAPI)
 
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)

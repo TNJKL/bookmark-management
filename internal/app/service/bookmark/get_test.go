@@ -95,7 +95,7 @@ func TestService_GetBookmarks(t *testing.T) {
 			ctx := t.Context()
 			mockRepo := tc.setupMockRepo(ctx)
 
-			svc := NewService(mockRepo, nil)
+			svc := NewService(mockRepo, nil, nil)
 
 			res, err := svc.GetBookmarks(ctx, userID, tc.inputPage, tc.inputLimit)
 

@@ -5,7 +5,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TNJKL/bookmark-management/internal/app/repository/bookmark"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/urlstorage"
+	"github.com/TNJKL/bookmark-management/pkg/dbutils"
 	"github.com/TNJKL/bookmark-management/pkg/utils"
 )
 
@@ -23,15 +25,17 @@ type ShortenURL interface {
 // mock GenPass & Storage de test
 // shortenURL is the default implementation of the ShortenURL interface.
 type shortenURL struct {
-	storage urlstorage.URLStorage
-	keyGen  utils.KeyGenerator
+	storage      urlstorage.URLStorage
+	bookmarkRepo bookmark.Repository
+	keyGen       utils.KeyGenerator
 }
 
 // NewShortenURL creates a new ShortenURL service  instance.
-func NewShortenUrl(storage urlstorage.URLStorage, keyGen utils.KeyGenerator) ShortenURL {
+func NewShortenUrl(storage urlstorage.URLStorage, keyGen utils.KeyGenerator, bookmarkRepo bookmark.Repository) ShortenURL {
 	return &shortenURL{
-		storage: storage,
-		keyGen:  keyGen,
+		storage:      storage,
+		keyGen:       keyGen,
+		bookmarkRepo: bookmarkRepo,
 	}
 }
 
@@ -43,8 +47,7 @@ const linkKeyLength = 7
 // CreateShortenLink generates a unique short code and maps it to the original URL in storage
 func (s *shortenURL) CreateShortenLink(ctx context.Context, url string, exp int64) (string, error) {
 	//gen code
-
-	key := s.keyGen.GenerateKey(linkKeyLength)
+	key := utils.GetRedisPrefix() + s.keyGen.GenerateKey(linkKeyLength-1)
 
 	res, err := s.storage.GetURL(ctx, key)
 
@@ -67,5 +70,20 @@ func (s *shortenURL) CreateShortenLink(ctx context.Context, url string, exp int6
 
 // GetLinkFromCode retrieves the original URL associated with the given short code.
 func (s *shortenURL) GetLinkFromCode(ctx context.Context, code string) (string, error) {
-	return s.storage.GetURL(ctx, code)
+
+	if utils.IsRedisCode(code) {
+		return s.storage.GetURL(ctx, code)
+	}
+
+	if utils.IsSQLCode(code) {
+		bm, err := s.bookmarkRepo.GetByCode(ctx, code)
+		if err != nil {
+			if errors.Is(err, dbutils.ErrRecordNotFound) {
+				return "", urlstorage.ErrorCodeNotFound
+			}
+			return "", err
+		}
+		return bm.URL, nil
+	}
+	return "", urlstorage.ErrorCodeNotFound
 }
