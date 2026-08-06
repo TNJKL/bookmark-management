@@ -6,11 +6,12 @@ import (
 )
 
 type Config struct {
-	Apport      string `default:"8080" envconfig:"APP_PORT"`
-	ServiceName string `default:"bookmark_service'" envconfig:"SERVICE_NAME"`
-	InstanceID  string `default:"" envconfig:"INSTANCE_ID"`
-	LogLevel    string `default:"info" envconfig:"LOG_LEVEL"`
-	BasePath    string `default:"/" envconfig:"BASE_PATH"`
+	Apport          string `default:"8080" envconfig:"APP_PORT"`
+	ServiceName     string `default:"bookmark_service'" envconfig:"SERVICE_NAME"`
+	InstanceID      string `default:"" envconfig:"INSTANCE_ID"`
+	LogLevel        string `default:"info" envconfig:"LOG_LEVEL"`
+	BasePath        string `default:"/" envconfig:"BASE_PATH"`
+	Base62XORSecret int    `default:"1051983661" envconfig:"BASE62_XOR_SECRET"`
 }
 
 func NewConfig() (*Config, error) {
