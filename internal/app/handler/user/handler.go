@@ -1,6 +1,7 @@
 package user
 
 import (
+	"sync"
 	"unicode"
 
 	"github.com/TNJKL/bookmark-management/internal/app/service/user"
@@ -22,11 +23,15 @@ type userHandler struct {
 	svc user.Service
 }
 
+var registerPasswordValidationOnce sync.Once
+
 // NewHandler creates a new user Handler instance and registers the custom password validation
 func NewHandler(svc user.Service) Handler {
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		_ = v.RegisterValidation("strong_password", validateStrongPassword)
-	}
+	registerPasswordValidationOnce.Do(func() {
+		if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+			_ = v.RegisterValidation("strong_password", validateStrongPassword)
+		}
+	})
 	return &userHandler{svc: svc}
 }
 
