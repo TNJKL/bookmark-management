@@ -11,7 +11,7 @@ type Config struct {
 	InstanceID      string `default:"" envconfig:"INSTANCE_ID"`
 	LogLevel        string `default:"info" envconfig:"LOG_LEVEL"`
 	BasePath        string `default:"/" envconfig:"BASE_PATH"`
-	Base62XORSecret int    `default:"1051983661" envconfig:"BASE62_XOR_SECRET"`
+	Base62XORSecret int    `default:"1051983662" envconfig:"BASE62_XOR_SECRET"`
 }
 
 func NewConfig() (*Config, error) {
