@@ -13,6 +13,7 @@ import (
 	"github.com/TNJKL/bookmark-management/internal/app/handler/link"
 	userHandler "github.com/TNJKL/bookmark-management/internal/app/handler/user"
 	bookmarkRepo "github.com/TNJKL/bookmark-management/internal/app/repository/bookmark"
+	"github.com/TNJKL/bookmark-management/internal/app/repository/cache"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/ping"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/urlstorage"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/user"
@@ -101,23 +102,31 @@ func (e *engine) initHandlers() *handlers {
 	pingRepo := ping.NewHealthRepository(e.redisClient)
 	healthCheckSvc := healthcheck2.NewHealthCheck(e.cfg.ServiceName, e.cfg.InstanceID, pingRepo)
 	urlStorage := urlstorage.NewURLStorage(e.redisClient)
-	shortenUrlSvc := linkSvc.NewShortenUrl(urlStorage, keyGen)
+	bookmarkRepository := bookmarkRepo.NewRepository(e.db)
+	shortenUrlSvc := linkSvc.NewShortenUrl(urlStorage, keyGen, bookmarkRepository)
 
 	//init user handler
 	userRepo := user.NewSQLRepository(e.db)
 	hasher := utils.NewHasher()
 	userService := userSvc.NewService(userRepo, hasher, e.jwtGen)
 
+	//cache repo
+	cacheRepo := cache.NewRedisDB(e.redisClient)
+
+	//init Base62
+	base62 := utils.NewBase62(e.cfg.Base62XORSecret)
+
 	//init bookmark handler
-	bookmarkRepository := bookmarkRepo.NewRepository(e.db)
-	bookmarkService := bookmarkSvc.NewService(bookmarkRepository, keyGen)
+
+	bookmarkService := bookmarkSvc.NewService(bookmarkRepository, base62, e.db)
+	bookmarkServiceWithCache := bookmarkSvc.NewServiceWithCache(bookmarkService, cacheRepo)
 
 	return &handlers{
 		genPassHandler:     genpassHandler.NewGenPass(genPassSvc),
 		healthCheckHandler: healthcheck.NewHealthCheck(healthCheckSvc),
 		urlStorageHandler:  link.NewShortenURL(shortenUrlSvc),
 		userHandler:        userHandler.NewHandler(userService),
-		bookmarkHandler:    bookmark.NewHandler(bookmarkService),
+		bookmarkHandler:    bookmark.NewHandler(bookmarkServiceWithCache),
 	}
 }
 

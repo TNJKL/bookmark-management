@@ -6,7 +6,6 @@ import (
 
 	repoMocks "github.com/TNJKL/bookmark-management/internal/app/repository/bookmark/mocks"
 	"github.com/TNJKL/bookmark-management/pkg/dbutils"
-	keyGenMocks "github.com/TNJKL/bookmark-management/pkg/utils/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -56,9 +55,8 @@ func TestService_UpdateBookmark(t *testing.T) {
 			t.Parallel()
 			ctx := t.Context()
 			mockRepo := tc.setupMockRepo(ctx)
-			mockKeyGen := keyGenMocks.NewKeyGenerator(t)
 
-			svc := NewService(mockRepo, mockKeyGen)
+			svc := NewService(mockRepo, nil, nil)
 			err := svc.UpdateBookmark(ctx, id, userID, description, url)
 			assert.ErrorIs(t, err, tc.expectedErr)
 		})

@@ -74,7 +74,6 @@ func TestBookmarkHandler_CreateBookmark(t *testing.T) {
 				assert.Equal(t, description, resp.Data.Description)
 				assert.Equal(t, url, resp.Data.URL)
 				assert.Equal(t, code, resp.Data.Code)
-				assert.Equal(t, userID, resp.Data.UserID)
 			},
 		},
 		{

@@ -8,10 +8,13 @@ import (
 	"testing"
 
 	"github.com/TNJKL/bookmark-management/internal/api"
+	"github.com/TNJKL/bookmark-management/internal/app/model"
+	"github.com/TNJKL/bookmark-management/internal/test/data/fixtures"
 	redisPkg "github.com/TNJKL/bookmark-management/pkg/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 func TestShortenURLEndpoint(t *testing.T) {
@@ -112,22 +115,23 @@ func TestRedirectEnpoint(t *testing.T) {
 	testCases := []struct {
 		name                 string
 		setupRedis           func(ctx context.Context) *redis.Client
+		setupDB              func(t *testing.T) *gorm.DB
 		setupTestHTTP        func(api api.Engine) *httptest.ResponseRecorder
 		expectedStatusCode   int
 		expectedURL          string
 		expectedResponseBody string
 	}{
 		{
-			name: "happy path",
+			name: "redis happy path (redis code)",
 			setupRedis: func(ctx context.Context) *redis.Client {
 				mock := redisPkg.InitMockRedis(t)
-				//ở đây e nạp sẵn code "Songoku" để ánh xạ sang URL "https://google.com"
-				err := mock.Set(ctx, "Songoku", "https://google.com", 0).Err()
+				err := mock.Set(ctx, "aSongoku", "https://google.com", 0).Err()
 				assert.NoError(t, err)
 				return mock
 			},
+			setupDB: func(t *testing.T) *gorm.DB { return nil },
 			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/Songoku", nil)
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/aSongoku", nil)
 				rec := httptest.NewRecorder()
 				api.ServerHTTP(rec, req)
 				return rec
@@ -137,12 +141,13 @@ func TestRedirectEnpoint(t *testing.T) {
 			expectedResponseBody: "",
 		},
 		{
-			name: "code not found",
+			name: "redis code not found",
 			setupRedis: func(ctx context.Context) *redis.Client {
 				return redisPkg.InitMockRedis(t)
 			},
+			setupDB: func(t *testing.T) *gorm.DB { return nil },
 			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/blahhhh", nil)
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/ablahhhh", nil)
 				rec := httptest.NewRecorder()
 				api.ServerHTTP(rec, req)
 				return rec
@@ -151,22 +156,40 @@ func TestRedirectEnpoint(t *testing.T) {
 			expectedURL:          "",
 			expectedResponseBody: `{"message":"Input error"}`,
 		},
+
 		{
-			name: "redis connection error",
-			setupRedis: func(ctx context.Context) *redis.Client {
-				mock := redisPkg.InitMockRedis(t)
-				_ = mock.Close()
-				return mock
+			name:       "postgres happy path (bookmark code)",
+			setupRedis: func(ctx context.Context) *redis.Client { return redisPkg.InitMockRedis(t) },
+			setupDB: func(t *testing.T) *gorm.DB {
+				db := fixtures.NewFixture(t, &fixtures.BookmarkCommonTestDB{})
+				db.Model(&model.Bookmark{}).Where("id = ?", "deb745af-1a62-4efa-99a0-f06b274bd993").Update("code", "k123456")
+				return db
 			},
 			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/Songoku", nil)
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/k123456", nil)
 				rec := httptest.NewRecorder()
 				api.ServerHTTP(rec, req)
 				return rec
 			},
-			expectedStatusCode:   http.StatusInternalServerError,
+			expectedStatusCode:   http.StatusFound,
+			expectedURL:          "https://google.com",
+			expectedResponseBody: "",
+		},
+		{
+			name:       "postgres bookmark code not found",
+			setupRedis: func(ctx context.Context) *redis.Client { return redisPkg.InitMockRedis(t) },
+			setupDB: func(t *testing.T) *gorm.DB {
+				return fixtures.NewFixture(t, &fixtures.BookmarkCommonTestDB{})
+			},
+			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/kNotFound", nil)
+				rec := httptest.NewRecorder()
+				api.ServerHTTP(rec, req)
+				return rec
+			},
+			expectedStatusCode:   http.StatusNotFound,
 			expectedURL:          "",
-			expectedResponseBody: `{"message":"Processing error"}`,
+			expectedResponseBody: `{"message":"Input error"}`,
 		},
 	}
 	for _, tc := range testCases {
@@ -174,10 +197,12 @@ func TestRedirectEnpoint(t *testing.T) {
 			t.Parallel()
 			ctx := t.Context()
 			mockRedis := tc.setupRedis(ctx)
+			db := tc.setupDB(t)
 			testAPI := api.NewEngine(&api.EngineOpts{
 				App:         gin.New(),
 				Cfg:         &api.Config{},
 				RedisClient: mockRedis,
+				Db:          db,
 			})
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatusCode, recorder.Code)

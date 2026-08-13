@@ -22,4 +22,6 @@ const migrationPath = "file://./migrations"
 
 // MigrateDB will migrate the database according to the User struct.
 // It will create the table if it doesn't exist and update the schema if it's outdated.
-func MigrateDB(dbClient *gorm.DB) error { return sqldb.MigrateSQLDB(dbClient, migrationPath, "up", 0) }
+func MigrateDB(dbClient *gorm.DB) error {
+	return sqldb.MigrateSQLDB(dbClient, migrationPath, "up", 0)
+}

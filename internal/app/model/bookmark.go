@@ -6,6 +6,7 @@ type Bookmark struct {
 	Description string `json:"description"`
 	URL         string `json:"url"`
 	Code        string `json:"code" gorm:"unique"`
-	UserID      string `json:"user_id"`
+	CodeInt     int    `json:"-" gorm:"column:code_int;autoIncrement"`
+	UserID      string `json:"-"`
 	User        *User  `gorm:"references:ID" json:"-"`
 }

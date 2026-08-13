@@ -515,9 +515,6 @@ const docTemplate = `{
                 },
                 "url": {
                     "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
                 }
             }
         },

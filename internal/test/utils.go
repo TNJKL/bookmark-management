@@ -8,6 +8,7 @@ import (
 	"github.com/TNJKL/bookmark-management/pkg/jwtutils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -35,12 +36,13 @@ func generateTestToken(t *testing.T, jwtGen jwtutils.JWTGenerator, sub, email st
 }
 
 // buildTestAPI instantiates the Gin engine with mocking dependencies
-func buildTestAPI(db *gorm.DB, jwtGen jwtutils.JWTGenerator, jwtVal jwtutils.JWTValidator) api.Engine {
+func buildTestAPI(db *gorm.DB, redisClient *redis.Client, jwtGen jwtutils.JWTGenerator, jwtVal jwtutils.JWTValidator) api.Engine {
 	return api.NewEngine(&api.EngineOpts{
-		App:    gin.New(),
-		Cfg:    &api.Config{},
-		Db:     db,
-		JWTGen: jwtGen,
-		JWTVal: jwtVal,
+		App:         gin.New(),
+		Cfg:         &api.Config{},
+		RedisClient: redisClient,
+		Db:          db,
+		JWTGen:      jwtGen,
+		JWTVal:      jwtVal,
 	})
 }
