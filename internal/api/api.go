@@ -15,6 +15,7 @@ import (
 	bookmarkRepo "github.com/TNJKL/bookmark-management/internal/app/repository/bookmark"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/cache"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/ping"
+	"github.com/TNJKL/bookmark-management/internal/app/repository/ratelimit"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/urlstorage"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/user"
 	bookmarkSvc "github.com/TNJKL/bookmark-management/internal/app/service/bookmark"
@@ -130,12 +131,25 @@ func (e *engine) initHandlers() *handlers {
 	}
 }
 
+// middlewares represents the struct for containing all the necessary middlewares for API
+type middlewares struct {
+	jwtAuth   middleware.JWTAuth
+	ratelimit middleware.RateLimit
+}
+
+// initMiddlewares initializes the api middlewares
+func (e *engine) initMiddlewares() middlewares {
+	rateLimitRepo := ratelimit.NewRedisRepo(e.redisClient)
+	return middlewares{
+		jwtAuth:   middleware.NewJWTAuth(e.jwtVal),
+		ratelimit: middleware.NewRateLimit(rateLimitRepo),
+	}
+}
+
 // initRoutes initializes the api routes
 func (e *engine) initRoutes() {
 	allHandler := e.initHandlers()
-
-	//init middleware
-	jwtAuth := middleware.NewJWTAuth(e.jwtVal)
+	allMiddlewares := e.initMiddlewares()
 
 	//genpass
 	e.app.GET("/genpass", allHandler.genPassHandler.GeneratePassword)
@@ -160,7 +174,8 @@ func (e *engine) initRoutes() {
 	}
 	//private routes (need Auth)
 	privateRoutes := e.app.Group("")
-	privateRoutes.Use(jwtAuth.JWTAuth())
+	privateRoutes.Use(allMiddlewares.jwtAuth.JWTAuth())
+	privateRoutes.Use(allMiddlewares.ratelimit.RateLimit())
 	{
 		privateV1Routes := privateRoutes.Group("/v1")
 		{
