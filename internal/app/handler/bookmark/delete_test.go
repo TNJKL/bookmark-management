@@ -112,7 +112,7 @@ func TestBookmarkHandler_DeleteBookmark(t *testing.T) {
 			mockSvc := tc.setupMockSvc(ctx)
 			tc.setupTestRequest(ctx)
 
-			bookmarkHandler := NewHandler(mockSvc)
+			bookmarkHandler := NewHandler(mockSvc, nil)
 			bookmarkHandler.DeleteBookmark(ctx)
 
 			assert.Equal(t, tc.expectedStatusCode, rec.Code)

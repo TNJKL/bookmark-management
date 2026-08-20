@@ -294,6 +294,32 @@ paths:
       summary: Update an existing bookmark of the current user
       tags:
       - bookmark
+  /v1/bookmarks/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Accepts a CSV file and import bookmarks
+      parameters:
+      - description: CSV file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload and parse a CSV file of bookmarks
+      tags:
+      - bookmark
   /v1/links/redirect/{code}:
     get:
       consumes:

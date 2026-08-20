@@ -2,6 +2,7 @@ package integration
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +12,11 @@ import (
 	"github.com/TNJKL/bookmark-management/internal/app/handler/dto"
 	"github.com/TNJKL/bookmark-management/internal/app/model"
 	"github.com/TNJKL/bookmark-management/internal/test/data/fixtures"
+	"github.com/TNJKL/bookmark-management/pkg/csv"
+	redisPkg "github.com/TNJKL/bookmark-management/pkg/redis"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
 
@@ -522,6 +527,91 @@ func TestDeleteBookmarkEndpoint(t *testing.T) {
 			}
 			if tc.verifyFunc != nil {
 				tc.verifyFunc(t, db)
+			}
+		})
+	}
+}
+
+func TestImportBookmarksEndpoint(t *testing.T) {
+	t.Parallel()
+	jwtGen, jwtVal := setupTestJWT(t)
+
+	userID := "deb745af-1a62-4efa-99a0-f06b274bd990"
+	email := "johndoe@example.com"
+
+	testCases := []struct {
+		name               string
+		setupRedis         func(t *testing.T) *redis.Client
+		setupTestHTTP      func(api api.Engine, redisClient *redis.Client) *httptest.ResponseRecorder
+		expectedStatusCode int
+		expectedResponse   string
+		verifyFunc         func(t *testing.T, redisClient *redis.Client, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "happy path - import valid csv bookmarks",
+
+			setupRedis: func(t *testing.T) *redis.Client {
+				return redisPkg.InitMockRedis(t)
+			},
+			setupTestHTTP: func(api api.Engine, redisClient *redis.Client) *httptest.ResponseRecorder {
+				token := generateTestToken(t, jwtGen, userID, email)
+				csvContent := "description,url\nGoogle,https://google.com\nFacebook,https://facebook.com"
+				writer, body := csv.CreateTestMultipartRequest(t, csvContent)
+
+				req := httptest.NewRequest(http.MethodPost, "/v1/bookmarks/import", body)
+				req.Header.Set("Content-Type", writer.FormDataContentType())
+				req.Header.Set("Authorization", "Bearer "+token)
+
+				rec := httptest.NewRecorder()
+				api.ServerHTTP(rec, req)
+				return rec
+			},
+			expectedStatusCode: http.StatusOK,
+			expectedResponse:   `"message":"Imported bookmarks successfully"`,
+			verifyFunc: func(t *testing.T, redisClient *redis.Client, recorder *httptest.ResponseRecorder) {
+				poppedMsg, err := redisClient.RPop(context.Background(), "bookmark-import").Bytes()
+				require.NoError(t, err)
+				assert.Contains(t, string(poppedMsg), "https://google.com")
+				assert.Contains(t, string(poppedMsg), userID)
+			},
+		},
+		{
+			name: "invalid input - invalid csv content",
+			setupRedis: func(t *testing.T) *redis.Client {
+				return redisPkg.InitMockRedis(t)
+			},
+			setupTestHTTP: func(api api.Engine, redisClient *redis.Client) *httptest.ResponseRecorder {
+				token := generateTestToken(t, jwtGen, userID, email)
+				csvContent := "description,url\nGoogle,invalid-url-string"
+				writer, body := csv.CreateTestMultipartRequest(t, csvContent)
+
+				req := httptest.NewRequest(http.MethodPost, "/v1/bookmarks/import", body)
+				req.Header.Set("Content-Type", writer.FormDataContentType())
+				req.Header.Set("Authorization", "Bearer "+token)
+
+				rec := httptest.NewRecorder()
+				api.ServerHTTP(rec, req)
+				return rec
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			expectedResponse:   `"message":"Input error"`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			redisClient := tc.setupRedis(t)
+
+			testAPI := buildTestAPI(nil, redisClient, jwtGen, jwtVal)
+			recorder := tc.setupTestHTTP(testAPI, redisClient)
+
+			assert.Equal(t, tc.expectedStatusCode, recorder.Code)
+			if tc.expectedResponse != "" {
+				assert.Contains(t, recorder.Body.String(), tc.expectedResponse)
+			}
+			if tc.verifyFunc != nil {
+				tc.verifyFunc(t, redisClient, recorder)
 			}
 		})
 	}
