@@ -15,6 +15,7 @@ import (
 	bookmarkRepo "github.com/TNJKL/bookmark-management/internal/app/repository/bookmark"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/cache"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/ping"
+	"github.com/TNJKL/bookmark-management/internal/app/repository/queue"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/ratelimit"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/urlstorage"
 	"github.com/TNJKL/bookmark-management/internal/app/repository/user"
@@ -22,6 +23,7 @@ import (
 	"github.com/TNJKL/bookmark-management/internal/app/service/genpass"
 	healthcheck2 "github.com/TNJKL/bookmark-management/internal/app/service/healthcheck"
 	linkSvc "github.com/TNJKL/bookmark-management/internal/app/service/link"
+	queueSvc "github.com/TNJKL/bookmark-management/internal/app/service/queue"
 	userSvc "github.com/TNJKL/bookmark-management/internal/app/service/user"
 	"github.com/TNJKL/bookmark-management/pkg/jwtutils"
 	"github.com/TNJKL/bookmark-management/pkg/utils"
@@ -38,6 +40,8 @@ type Engine interface {
 	Start() error
 	ServerHTTP(w http.ResponseWriter, req *http.Request)
 }
+
+const queueName = "bookmark-import"
 
 // Struct thực tế implement interface
 type engine struct {
@@ -117,8 +121,11 @@ func (e *engine) initHandlers() *handlers {
 	//init Base62
 	base62 := utils.NewBase62(e.cfg.Base62XORSecret)
 
-	//init bookmark handler
+	//init queue repo and service
+	queueRepo := queue.NewRedisQueueRepo(e.redisClient, queueName)
+	queueService := queueSvc.NewService(queueRepo)
 
+	//init bookmark
 	bookmarkService := bookmarkSvc.NewService(bookmarkRepository, base62, e.db)
 	bookmarkServiceWithCache := bookmarkSvc.NewServiceWithCache(bookmarkService, cacheRepo)
 
@@ -127,7 +134,7 @@ func (e *engine) initHandlers() *handlers {
 		healthCheckHandler: healthcheck.NewHealthCheck(healthCheckSvc),
 		urlStorageHandler:  link.NewShortenURL(shortenUrlSvc),
 		userHandler:        userHandler.NewHandler(userService),
-		bookmarkHandler:    bookmark.NewHandler(bookmarkServiceWithCache),
+		bookmarkHandler:    bookmark.NewHandler(bookmarkServiceWithCache, queueService),
 	}
 }
 
@@ -188,6 +195,7 @@ func (e *engine) initRoutes() {
 			privateV1Routes.GET("/bookmarks", allHandler.bookmarkHandler.GetBookmarks)
 			privateV1Routes.PUT("/bookmarks/:id", allHandler.bookmarkHandler.UpdateBookmark)
 			privateV1Routes.DELETE("/bookmarks/:id", allHandler.bookmarkHandler.DeleteBookmark)
+			privateV1Routes.POST("/bookmarks/import", allHandler.bookmarkHandler.ImportBookmarks)
 
 		}
 

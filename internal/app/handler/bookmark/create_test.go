@@ -155,7 +155,7 @@ func TestBookmarkHandler_CreateBookmark(t *testing.T) {
 			mockSvc := tc.setupMockSvc(ctx)
 			tc.setupTestRequest(ctx)
 
-			bookmarkHandler := NewHandler(mockSvc)
+			bookmarkHandler := NewHandler(mockSvc, nil)
 			bookmarkHandler.CreateBookmark(ctx)
 
 			assert.Equal(t, tc.expectedStatusCode, rec.Code)
